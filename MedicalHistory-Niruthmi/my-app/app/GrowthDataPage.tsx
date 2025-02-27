@@ -47,6 +47,7 @@ const GrowthDataPage = () => {
         style={styles.fab}
         icon="plus"
         onPress={handleAddGrowthDataPage}
+        color="white"
       />
 
       {/* Show AddGrowthDataPage if showAddPage is true */}
@@ -87,7 +88,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 20,
     right: 20,
-    backgroundColor: '#007AFF',
+    backgroundColor: 'darkblue',
   },
 });
 

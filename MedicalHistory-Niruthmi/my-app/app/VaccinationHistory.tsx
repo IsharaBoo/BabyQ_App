@@ -48,6 +48,7 @@ const VaccinationHistory = () => {
         style={styles.fab}
         icon="plus"
         onPress={handleAddVaccinationPage}
+        color="white"
       />
 
       {/* Show AddVaccinationHistoryPage if showAddPage is true */}
@@ -92,7 +93,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 20,
     right: 20,
-    backgroundColor: '#007AFF',
+    backgroundColor: 'darkblue',
   },
 });
 

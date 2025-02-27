@@ -47,6 +47,7 @@ const AllergiesHistory = () => {
         style={styles.fab}
         icon="plus"
         onPress={handleAddAllergyPage}
+        color="white"
       />
       
       {/* Show AddAllergyHistoryPage if showAddPage is true */}
@@ -91,7 +92,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 20,  // Adjusted to a visible spot
     right: 20,   // Positioned to the right
-    backgroundColor: '#007AFF',
+    backgroundColor: 'darkblue',
   },
 });
 
