@@ -32,7 +32,7 @@ const MedicalHistoryPage = () => {
         onPress={goToChannelingHistory}
         style={styles.button}
       >
-       Channelings
+       Doctor Channelings
       </Button>
       <Button 
         mode="contained" 
