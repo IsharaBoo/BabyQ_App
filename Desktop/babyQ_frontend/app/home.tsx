@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   adImage: {
-    width: 200,
+    width: 150, 
     height: 100,
     borderRadius: 8,
     marginRight: 10,

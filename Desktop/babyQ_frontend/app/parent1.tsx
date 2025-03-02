@@ -38,6 +38,7 @@ export default function ParentRegistration1() {
       />
 
       {/* Date of Birth */}
+      <Text style={styles.dob}>DOB</Text>
       <View style={styles.dobContainer}>
 
       <TextInput
@@ -118,6 +119,13 @@ const styles = StyleSheet.create({
     color: '#666',
     marginBottom: 30,
   },
+
+  dob: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 10,
+},
+
   input: {
     width: '100%',
     height: 50,
@@ -127,6 +135,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     fontSize: 16,
   },
+  
   dobContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',

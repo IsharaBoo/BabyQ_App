@@ -6,10 +6,9 @@ import { useRouter } from 'expo-router';
 export default function ResetPW() {
   const router = useRouter();
   const [confirmationCode, setConfirmationCode] = useState('');
+  const [error, setError] = useState('');
 
   const handleVerify = () => {
-    // Add your verification logic here
-    // For example, validate the confirmation code and reset the password
     if (validateCode()) {
       alert('Password reset successful!');
       router.push('/ResetPW2'); // Navigate to the Reset Password Confirmation Screen
@@ -17,16 +16,19 @@ export default function ResetPW() {
   };
 
   const validateCode = () => {
-    // Add your validation logic here
-    // For example, check if the confirmation code is correct
-    return confirmationCode.length === 4; // Example validation
+    if (!/^\d{4}$/.test(confirmationCode)) {
+      setError('Enter a valid 4-digit code.');
+      return false;
+    }
+    setError('');
+    return true;
   };
 
   const handleBack = () => {
     if (router.canGoBack()) {
       router.back();
     } else {
-      router.push('/resetPassword'); // Navigate to a specific screen if there is no previous screen
+      router.push('/resetPassword'); 
     }
   };
 
@@ -45,17 +47,27 @@ export default function ResetPW() {
 
       {/* Confirmation Code Input */}
       <TextInput
-        style={styles.input}
-        placeholder="Confirmation code"
+        style={[styles.input, error ? styles.inputError : null]}
+        placeholder="Enter 4-digit code"
         placeholderTextColor="#A9A9A9"
         keyboardType="numeric"
-        autoCapitalize="none"
+        maxLength={4}
         value={confirmationCode}
-        onChangeText={setConfirmationCode}
+        onChangeText={(text) => {
+          setConfirmationCode(text.replace(/[^0-9]/g, '')); // Only allow numbers
+          setError(''); // Clear error when user types
+        }}
       />
 
-      {/* Verify Button */}
-      <TouchableOpacity style={styles.verifyButton} onPress={handleVerify}>
+      {/* Show Error Message */}
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
+      {/* Verify Button - Disabled Until Valid */}
+      <TouchableOpacity 
+        style={[styles.verifyButton, confirmationCode.length === 4 ? {} : styles.disabledButton]}
+        onPress={handleVerify}
+        disabled={confirmationCode.length !== 4}
+      >
         <Text style={styles.verifyButtonText}>Verify</Text>
       </TouchableOpacity>
 
@@ -97,7 +109,17 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 15,
     fontSize: 16,
-    marginBottom: 40,
+    marginBottom: 10,
+  },
+  inputError: {
+    borderWidth: 1,
+    borderColor: 'red',
+    backgroundColor: '#FFE5E5',
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 14,
+    marginBottom: 10,
   },
   verifyButton: {
     backgroundColor: '#2D4BC2',
@@ -105,6 +127,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 8,
     marginBottom: 10,
+  },
+  disabledButton: {
+    backgroundColor: '#A9A9A9', // Grey out when disabled
   },
   verifyButtonText: {
     color: '#fff',

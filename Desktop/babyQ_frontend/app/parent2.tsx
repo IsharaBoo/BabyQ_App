@@ -10,6 +10,9 @@ export default function ParentRegistration2() {
   const [dob, setDob] = useState({ month: '', day: '', year: '' });
   const [gender, setGender] = useState('');
   const [bloodType, setBloodType] = useState('');
+  const [weight, setWeight] = useState('');
+  const [height, setHeight] = useState('');
+  const [allergies, setAllergies] = useState('');
   const [additionalInfo, setAdditionalInfo] = useState('');
 
   const handleSignUp = () => {
@@ -89,6 +92,36 @@ export default function ParentRegistration2() {
         placeholder="Blood type"
         value={bloodType}
         onChangeText={setBloodType}
+        style={styles.input}
+        placeholderTextColor="#666"
+        keyboardType="default"
+      />
+
+      {/* Weight */}
+      <TextInput
+        placeholder="Weight (kg)"
+        value={weight}
+        onChangeText={setWeight}
+        style={styles.input}
+        placeholderTextColor="#666"
+        keyboardType="numeric"
+      />
+
+      {/* Height */}
+      <TextInput
+        placeholder="Height (cm)"
+        value={height}
+        onChangeText={setHeight}
+        style={styles.input}
+        placeholderTextColor="#666"
+        keyboardType="numeric"
+      />
+
+      {/* Allergies */}
+      <TextInput
+        placeholder="Allergies (if any)"
+        value={allergies}
+        onChangeText={setAllergies}
         style={styles.input}
         placeholderTextColor="#666"
         keyboardType="default"
