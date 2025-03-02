@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
     marginTop: 50,
   },
   description: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#555',
     marginTop: 20,
     marginBottom: 30,
