@@ -1,22 +1,71 @@
-node_modules
-/Desktop/IIT/L5/Semester 2/Client Server ARch/JavaApplication1/nbproject/private/
-/Desktop/IIT/L5/Semester 2/Client Server ARch/Tutorial01Message/nbproject/private/
-/Desktop/IIT/L5/Semester 2/Client Server ARch/Tutorial01Message/build/
-/Desktop/IIT/L5/Semester 2/Client Server ARch/tutorial02/nbproject/private/
-/Desktop/IIT/L5/Semester 2/Client Server ARch/Tutes/tutorial02/build/
-/Desktop/IIT/L5/Semester 2/Client Server ARch/Tutes/Tutorial-week03-socket2 3/target/
-/Desktop/IIT/L5/Semester 2/Client Server ARch/Tutes/Tutorial-week03-socket2 2/target/
-/Desktop/IIT/L5/Semester 2/Client Server ARch/Tutorial-week04-EX2/nbproject/private/
-/Desktop/IIT/L5/Semester 2/Client Server ARch/Tutorial-week04-EX2/build/
-/Desktop/IIT/L5/Semester 2/Client Server ARch/Tutorial-week04-EX2/dist/
-/Desktop/IIT/L5/Semester 2/Client Server ARch/Tutes/Tutorial-week03-socket2/target/
-.DS_Store
-.android/
-.vscode/
-.expo/
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-/.idea/
+# System files
+.CFUserTextEncoding
+.Genymobile/
+.anydesk/
+.bash_history
+.bashrc.save
+.bundle/
+.config/
+.dart-tool/
+.emulator_console_auth_token
+.flutter
+.gem/
+.gitconfig
+.gradle/
+.idlerc/
+.lemminx/
+.lesshst
+.m2/
+.mongodb/
+.mysql_history
+.npm/
+.nvm/
+.pub-cache/
+.redhat/
+.scenebuilder/
+.viminfo
+.vscode-react-native/
+.yarnrc
+.zcompdump
+.zprofile
+.zsh_history
+.zsh_sessions/
+.zshrc
+.zshrc.save
 
+# Applications, files, and directories outside the BabyQ_frontend project
+Applications/
+BabyQ/
+.localized
+20232469_w2082248_Dinuli_OOP_cw/
+BabyQ app/
+BabyQ_App/
+CIMA/
+FirstProject/
+Google Chrome.app/
+Google Drive/
+IIT/
+Microsoft Teams/
+Screenshots/
+ToDoList/
+babyQ_backend/
+organ ad.docx
+~$OSC025C_CW1Report_temp.docx
+Documents/
+Downloads/
+Library/
+Movies/
+Music/
+My Drive/
+MyApp/
+OneDrive/
+Pictures/
+Public/
+development/
+dinuli.20232469@iit.ac.lk - Google Drive/
+dinulihendawitharana03@gmail.com - Google Drive/
+event-ticketing-frontend/
+firmware/
+iCloud Drive (Archive) - 1/
+iCloud Drive (Archive)/
+node_modules
