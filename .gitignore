@@ -1,0 +1,22 @@
+node_modules
+/Desktop/IIT/L5/Semester 2/Client Server ARch/JavaApplication1/nbproject/private/
+/Desktop/IIT/L5/Semester 2/Client Server ARch/Tutorial01Message/nbproject/private/
+/Desktop/IIT/L5/Semester 2/Client Server ARch/Tutorial01Message/build/
+/Desktop/IIT/L5/Semester 2/Client Server ARch/tutorial02/nbproject/private/
+/Desktop/IIT/L5/Semester 2/Client Server ARch/Tutes/tutorial02/build/
+/Desktop/IIT/L5/Semester 2/Client Server ARch/Tutes/Tutorial-week03-socket2 3/target/
+/Desktop/IIT/L5/Semester 2/Client Server ARch/Tutes/Tutorial-week03-socket2 2/target/
+/Desktop/IIT/L5/Semester 2/Client Server ARch/Tutorial-week04-EX2/nbproject/private/
+/Desktop/IIT/L5/Semester 2/Client Server ARch/Tutorial-week04-EX2/build/
+/Desktop/IIT/L5/Semester 2/Client Server ARch/Tutorial-week04-EX2/dist/
+/Desktop/IIT/L5/Semester 2/Client Server ARch/Tutes/Tutorial-week03-socket2/target/
+.DS_Store
+.android/
+.vscode/
+.expo/
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+/.idea/
+
