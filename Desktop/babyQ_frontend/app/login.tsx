@@ -1,16 +1,20 @@
 import React from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
-import { FontAwesome } from '@expo/vector-icons';
+import { FontAwesome, Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router'; // Import the router
 
 export default function LoginPage() {
   const handleLogin = () => {
-    
     router.replace('/home'); // Navigate to the Home Page after login
   };
 
   return (
     <View style={styles.container}>
+      {/* Back Button */}
+      <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+        <Ionicons name="chevron-back" size={24} color="black" />
+      </TouchableOpacity>
+
       <Text style={styles.welcomeText}>Welcome</Text>
 
       {/* Email Input */}
@@ -54,6 +58,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#fff',
     padding: 20,
+  },
+  backButton: {
+    position: 'absolute',
+    top: 40,
+    left: 20,
   },
   welcomeText: {
     fontSize: 28,

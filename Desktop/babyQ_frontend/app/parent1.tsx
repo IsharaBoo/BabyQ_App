@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { router } from 'expo-router';
 
 export default function ParentRegistration1() {
@@ -8,9 +8,25 @@ export default function ParentRegistration1() {
   const [dob, setDob] = useState({ month: '', day: '', year: '' });
   const [address, setAddress] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
+  const [email, setEmail] = useState('');
 
   const handleContinue = () => {
-    // Add validation logic here
+    // Validation logic
+    if (!fullName || !nicNumber || !dob.day || !dob.month || !dob.year || !address || !phoneNumber || !email) {
+      Alert.alert('Error', 'Please fill in all fields');
+      return;
+    }
+
+    if (!/^\d{10}$/.test(phoneNumber)) {
+      Alert.alert('Error', 'Please enter a valid phone number');
+      return;
+    }
+
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      Alert.alert('Error', 'Please enter a valid email address');
+      return;
+    }
+
     router.push('/parent2' as any); // Navigate to the next registration page
   };
 
@@ -39,8 +55,7 @@ export default function ParentRegistration1() {
 
       {/* Date of Birth */}
       <View style={styles.dobContainer}>
-
-      <TextInput
+        <TextInput
           placeholder="DD"
           value={dob.day}
           onChangeText={(text) => setDob({ ...dob, day: text })}
@@ -48,7 +63,6 @@ export default function ParentRegistration1() {
           placeholderTextColor="#666"
           maxLength={2}
         />
-        
         <TextInput
           placeholder="MM"
           value={dob.month}
@@ -84,6 +98,16 @@ export default function ParentRegistration1() {
         style={styles.input}
         placeholderTextColor="#666"
         keyboardType="phone-pad"
+      />
+
+      {/* Email */}
+      <TextInput
+        placeholder="Email"
+        value={email}
+        onChangeText={setEmail}
+        style={styles.input}
+        placeholderTextColor="#666"
+        keyboardType="email-address"
       />
 
       {/* Continue Button */}

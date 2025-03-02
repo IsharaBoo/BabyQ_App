@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 
@@ -13,6 +13,17 @@ export default function ResetPasswordScreen() {
   const [email, setEmail] = useState('');
 
   const handleReset = () => {
+    // Validation logic
+    if (!email) {
+      Alert.alert('Error', 'Please enter your email address');
+      return;
+    }
+
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      Alert.alert('Error', 'Please enter a valid email address');
+      return;
+    }
+
     // Add your reset logic here (e.g., send a confirmation code to the email)
     navigation.navigate('ResetPW'); // Navigate to the Reset Password Confirmation Screen
   };

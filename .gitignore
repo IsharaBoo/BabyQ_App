@@ -35,37 +35,48 @@
 
 # Applications, files, and directories outside the BabyQ_frontend project
 Applications/
-BabyQ/
+
 .localized
 20232469_w2082248_Dinuli_OOP_cw/
-BabyQ app/
-BabyQ_App/
+
+
 CIMA/
 FirstProject/
-Google Chrome.app/
-Google Drive/
+Google\ Chrome.app/
+Google\ Drive/
 IIT/
-Microsoft Teams/
+Microsoft\ Teams/
 Screenshots/
 ToDoList/
 babyQ_backend/
-organ ad.docx
+organ\ ad.docx
 ~$OSC025C_CW1Report_temp.docx
 Documents/
 Downloads/
 Library/
 Movies/
 Music/
-My Drive/
+My\ Drive/
 MyApp/
 OneDrive/
 Pictures/
 Public/
 development/
-dinuli.20232469@iit.ac.lk - Google Drive/
-dinulihendawitharana03@gmail.com - Google Drive/
+dinuli.20232469@iit.ac.lk\ -\ Google\ Drive/
+dinulihendawitharana03@gmail.com\ -\ Google\ Drive/
 event-ticketing-frontend/
 firmware/
-iCloud Drive (Archive) - 1/
-iCloud Drive (Archive)/
+iCloud\ Drive\ \(Archive\)\ -\ 1/
+iCloud\ Drive\ \(Archive\)/
 node_modules
+# Ignore .DS_Store files
+.DS_Store
+
+# Ignore Google Drive, OneDrive, and related folders
+Google\ Drive/
+Microsoft\ Teams/
+My\ Drive\ \(dinuli.20232469@iit.ac.lk\)/
+OneDrive/
+dinuli.20232469@iit.ac.lk\ -\ Google\ Drive/
+dinulihendawitharana03@gmail.com\ -\ Google\ Drive/
+

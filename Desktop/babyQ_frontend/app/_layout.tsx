@@ -15,7 +15,7 @@ export default function RootLayout() {
       <Stack.Screen name="healthcareProvider3" options={{ headerShown: false }} />
       <Stack.Screen name="healthcareProvider4" options={{ headerShown: false }} />
       <Stack.Screen name="home" options={{ headerShown: false }} />
-      <Stack.Screen name="resetPassword1" options={{ headerShown: false }} />
+      <Stack.Screen name="resetPassword" options={{ headerShown: false }} />
       <Stack.Screen name="ResetPW" options={{ headerShown: false }} />
       <Stack.Screen name="ResetPW2" options={{ headerShown: false }} />
       <Stack.Screen name="resetDone" options={{ headerShown: false }} />
