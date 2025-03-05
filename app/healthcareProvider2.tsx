@@ -26,20 +26,21 @@ export default function HealthcareProviderRegistration2() {
 
   const handleContinue = () => {
     if (validateForm()) {
-      router.push('/healthcareProvider3' as any);
+      router.push('/healthcareProvider3');
     }
   };
 
   const handleGoBack = () => {
-    router.back(); // Navigate back to the previous screen
-  };
-
-  return (
-    <View style={styles.container}>
-      {/* Back Button */}
-      <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
-        <Ionicons name="arrow-back" size={24} color="#2D4BC2" />
-      </TouchableOpacity>
+      router.back(); // Navigate back to the previous screen
+    };
+  
+    return (
+      <View style={styles.container}>
+        {/* Back Button */}
+        <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
+          <Ionicons name="arrow-back" size={24} color="#2D4BC2" />
+        </TouchableOpacity>
+  
 
       <Text style={styles.title}>You're almost there!</Text>
 

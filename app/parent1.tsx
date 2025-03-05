@@ -12,22 +12,27 @@ export default function ParentRegistration1() {
 
   const handleContinue = () => {
     // Validation logic
+    console.log('handleContinue called');
     if (!fullName || !nicNumber || !dob.day || !dob.month || !dob.year || !address || !phoneNumber || !email) {
+      console.log('Validation failed: Please fill in all fields');
       Alert.alert('Error', 'Please fill in all fields');
       return;
     }
 
     if (!/^\d{10}$/.test(phoneNumber)) {
+      console.log('Validation failed: Please enter a valid phone number');
       Alert.alert('Error', 'Please enter a valid phone number');
       return;
     }
 
     if (!/\S+@\S+\.\S+/.test(email)) {
+      console.log('Validation failed: Please enter a valid email address');
       Alert.alert('Error', 'Please enter a valid email address');
       return;
     }
 
-    router.push('/parent2' as any); // Navigate to the next registration page
+    console.log('Validation passed, navigating to /parent2');
+    router.push('/parent2'); // Navigate to the next registration page
   };
 
   return (

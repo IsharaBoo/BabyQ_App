@@ -7,7 +7,7 @@ export default function HealthcareProviderRegistration4() {
   const router = useRouter();
 
   const handleCompleteProfile = () => {
-    router.replace('/home' as any); // Navigate to the Home Page
+    router.replace('/home'); // Navigate to the Home Page
   };
 
   const handleGoBack = () => {
