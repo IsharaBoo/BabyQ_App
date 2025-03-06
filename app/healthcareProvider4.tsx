@@ -38,7 +38,14 @@ export default function HealthcareProviderRegistration4() {
       <TouchableOpacity style={styles.button} onPress={handleCompleteProfile}>
         <Text style={styles.buttonText}>Complete Profile</Text>
       </TouchableOpacity>
-    </View>
+    
+    {/* Decorative Dots */}
+          <View style={styles.decorativeDots}>
+            {Array.from({ length: 5 }).map((_, index) => (
+              <View key={index} style={styles.dot} />
+            ))}
+          </View>
+        </View>
   );
 }
 
@@ -56,11 +63,12 @@ const styles = StyleSheet.create({
     left: 20,
   },
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
+    fontSize: 30,
+    fontWeight: '600',
     color: '#2D4BC2',
-    marginBottom: 20,
+    letterSpacing: 1.5,
     textAlign: 'center',
+    marginBottom: 20,
   },
   image: {
     width: 200, // Adjust the size based on your preference
@@ -68,16 +76,19 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   button: {
-    width: '100%',
+    width: '90%',
     backgroundColor: '#2D4BC2',
-    paddingVertical: 12,
-    borderRadius: 8,
+    paddingVertical: 15,
+    borderRadius: 20,
     alignItems: 'center',
+    elevation: 5,
+    marginTop: 20,
   },
   buttonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
+    color: '#FFFFFF',
+    fontSize: 20,
+    fontWeight: '700',
+    letterSpacing: 1,
   },
   // Progress bar styles
   progressContainer: {
@@ -96,5 +107,19 @@ const styles = StyleSheet.create({
   },
   active: {
     backgroundColor: '#FFA500', // Color for the active step
+  },
+  decorativeDots: {
+    position: 'absolute',
+    bottom: 30,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: 100,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#FF6F91',
+    opacity: 0.6,
   },
 });

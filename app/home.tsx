@@ -53,7 +53,7 @@ export default function HomePage() {
         <View style={styles.greetingContainer}>
           <FontAwesome name="user-circle" size={28} color="#2D4BC2" />
           <View>
-            <Text style={styles.greeting}>Hello Peter</Text>
+            <Text style={styles.greeting}>Hello, Peter</Text>
             <Text style={styles.subGreeting}>How are you today?</Text>
           </View>
         </View>
@@ -179,8 +179,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#2D4BC2',
     paddingVertical: 12,
     paddingHorizontal: 20,
-    borderRadius: 8,
+    borderRadius: 20,
   },
+  
   searchButtonText: {
     color: '#fff',
     fontSize: 16,

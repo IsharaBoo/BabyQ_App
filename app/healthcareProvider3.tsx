@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons'; // Import Ionicons from react-native-vector-icons
+import { Ionicons } from '@expo/vector-icons';
+import * as DocumentPicker from 'expo-document-picker';
 
 export default function HealthcareProviderRegistration3() {
   const router = useRouter();
+  const [fileName, setFileName] = useState<string | null>(null); // Define state for file name
 
   const handleContinue = () => {
     router.push('/healthcareProvider4'); // Navigate to the next page
@@ -12,6 +14,23 @@ export default function HealthcareProviderRegistration3() {
 
   const handleGoBack = () => {
     router.back(); // Navigate back to the previous screen
+  };
+
+  const handleUpload = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ['application/pdf', 'image/jpeg', 'image/png'],
+        copyToCacheDirectory: true,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const file = result.assets[0];
+        setFileName(file.name); // Store file name in state
+        console.log('Selected file:', file);
+      }
+    } catch (error) {
+      console.error('Error picking document:', error);
+    }
   };
 
   return (
@@ -37,17 +56,31 @@ export default function HealthcareProviderRegistration3() {
         Please upload a document proving your affiliation with your hospital or clinic (e.g., recent pay stub, employment letter, or hospital ID)
       </Text>
 
-      {/* Upload Button */}
-      <TouchableOpacity style={styles.uploadButton}>
-        <Text style={styles.uploadIcon}>+</Text>
-      </TouchableOpacity>
+      {/* Upload Button with PDF Icon */}
+      <TouchableOpacity style={styles.uploadButton} onPress={handleUpload} activeOpacity={0.8}>
+  <Ionicons name="document-attach-outline" size={35} color="#2D4BC2" />
+  <Ionicons name="add-circle" size={20} color="#2D4BC2" style={styles.plusIcon} />
+</TouchableOpacity>
 
-      <Text style={styles.fileFormats}>PDF, JPG, PNG</Text>
+
+      {/* Display Selected File Name */}
+      {fileName ? (
+        <Text style={styles.fileName}>{fileName}</Text>
+      ) : (
+        <Text style={styles.fileFormats}>PDF, JPG, PNG</Text>
+      )}
 
       {/* Finish Button */}
       <TouchableOpacity style={styles.button} onPress={handleContinue}>
         <Text style={styles.buttonText}>Finish</Text>
       </TouchableOpacity>
+
+      {/* Decorative Dots */}
+      <View style={styles.decorativeDots}>
+        {Array.from({ length: 5 }).map((_, index) => (
+          <View key={index} style={styles.dot} />
+        ))}
+      </View>
     </View>
   );
 }
@@ -65,10 +98,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 60,
     left: 20,
-  },
-  backText: {
-    fontSize: 20,
-    color: '#000',
   },
   title: {
     fontSize: 30,
@@ -101,6 +130,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 20,
     color: '#333',
+    paddingHorizontal: 10,
   },
   uploadButton: {
     width: 50,
@@ -111,25 +141,52 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 10,
   },
-  uploadIcon: {
-    fontSize: 24,
-    fontWeight: 'bold',
+  fileName: {
+    fontSize: 14,
+    color: '#2D4BC2',
+    marginBottom: 40,
+    textAlign: 'center',
+    fontWeight: '600',
   },
   fileFormats: {
     fontSize: 14,
-    color: '#666',
-    marginBottom: 30,
+    color: '#7A7A7A',
+    marginBottom: 40,
   },
   button: {
+    width: '90%',
     backgroundColor: '#2D4BC2',
-    paddingVertical: 12,
-    width: '80%',
-    borderRadius: 8,
+    paddingVertical: 15,
+    borderRadius: 20,
     alignItems: 'center',
+    elevation: 5,
+    marginTop: 20,
   },
   buttonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
+    color: '#FFFFFF',
+    fontSize: 20,
+    fontWeight: '700',
+    letterSpacing: 1,
   },
+  decorativeDots: {
+    position: 'absolute',
+    bottom: 30,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: 100,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#FF6F91',
+    opacity: 0.6,
+  },
+  plusIcon: {
+    position: 'absolute',
+    bottom: -5,
+    right: -5,
+  }
+  
 });
+

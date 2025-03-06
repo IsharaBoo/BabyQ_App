@@ -158,8 +158,8 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     borderRadius: 20,
     alignItems: 'center',
-    elevation: 5,
-    marginTop: 20,
+    
+    marginTop: 10,
   },
   buttonText: {
     color: '#FFFFFF',
@@ -167,6 +167,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 1,
   },
+  
   decorativeDots: {
     position: 'absolute',
     bottom: 30,
