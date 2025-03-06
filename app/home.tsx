@@ -13,6 +13,10 @@ export default function HomePage() {
     }
   };
 
+  const handleCategoryPress = (category: string) => {
+    router.push(`/doctorCategory?category=${encodeURIComponent(category)}`);
+  };
+
   const categories = [
     { id: '1', title: 'General Physician', icon: 'user-md' },
     { id: '2', title: 'Pediatrician', icon: 'child' },
@@ -27,13 +31,14 @@ export default function HomePage() {
     { id: '2', image: require('../assets/images/ad2.png') },
     { id: '3', image: require('../assets/images/ad3.png') },
     { id: '4', image: require('../assets/images/ad4.png') },
-    { id: '5', image: require('../assets/images/ad5.png') },
+    { id: '5', image: require('../assets/images/ad6.jpg') },
   ];
 
   const news = [
     { id: '1', title: 'Protect Your Child from Diabetes: Prevention Starts Today', date: '11 Dec 2024', image: require('../assets/images/diabetes.png'), url: 'https://newsinhealth.nih.gov/2024/11/preventing-diabetes' },
     { id: '2', title: '6 Essential Tips to Protect Your Child during the Flu Season', date: '12 Dec 2024', image: require('../assets/images/flu.png'), url: 'https://www.choa.org/parent-resources/flu/how-to-prevent-the-flu' },
     { id: '3', title: 'Rising Malaria thread around the world', date: '10 Dec 2024', image: require('../assets/images/threat.png'), url: 'https://www.weforum.org/stories/2022/02/eliminating-malaria-is-within-reach/' },
+    { id: '4', title: '5,000 unvaccinated children in Colombo city spark fear of disease resurgence', date: '3 Jan 2025', image: require('../assets/images/vaccine.jpeg'), url: 'https://island.lk/5000-unvaccinated-children-in-colombo-city-spark-fear-of-disease-resurgence/' },
   ];
 
   const handlePress = (url: string) => {
@@ -47,7 +52,10 @@ export default function HomePage() {
         {/* Greeting Section */}
         <View style={styles.greetingContainer}>
           <FontAwesome name="user-circle" size={28} color="#2D4BC2" />
-          <Text style={styles.greeting}>Hello Peter</Text>
+          <View>
+            <Text style={styles.greeting}>Hello Peter</Text>
+            <Text style={styles.subGreeting}>How are you today?</Text>
+          </View>
         </View>
 
         {/* Search Bar */}
@@ -64,7 +72,8 @@ export default function HomePage() {
           </TouchableOpacity>
         </View>
 
-        {/* Ads Section */}
+       {/* Ads Section */}
+       <Text style={styles.sectionTitle}>Featured Ads</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.adsContainer}>
           {ads.map((ad) => (
             <Image key={ad.id} source={ad.image} style={styles.adImage} />
@@ -79,13 +88,17 @@ export default function HomePage() {
           showsHorizontalScrollIndicator={false}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <View style={styles.categoryCard}>
-              <FontAwesome name={item.icon as 'user-md' | 'child' | 'heartbeat' | 'wheelchair' | 'user'} size={24} color="#2D4BC2" />
+            <TouchableOpacity
+              style={styles.categoryCard}
+              onPress={() => handleCategoryPress(item.title)}
+            >
+             <FontAwesome name={item.icon as 'user-md' | 'child' | 'heartbeat' | 'wheelchair' | 'user'} size={24} color="#2D4BC2" />
               <Text style={styles.categoryTitle}>{item.title}</Text>
-            </View>
+            </TouchableOpacity>
           )}
         />
 
+      
         {/* News/Articles Section */}
         <Text style={styles.sectionTitle}>Latest News</Text>
         <View style={styles.newsContainer}>
@@ -142,6 +155,12 @@ const styles = StyleSheet.create({
     color: '#2D4BC2',
     marginLeft: 10,
   },
+  subGreeting: {
+    fontSize: 14,
+    color: '#666',
+    marginLeft: 10,
+    marginTop: 5,
+  },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -171,8 +190,8 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   adImage: {
-    width: 100, // Make the width and height the same for a square
-    height: 100,
+    width: 130, // Make the width and height the same for a square
+    height: 95,
     borderRadius: 8,
     marginRight: 10,
   },
@@ -191,6 +210,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 15,
     marginRight: 10,
+    width: 170,
+    height: 80,
     alignItems: 'center',
   },
   categoryTitle: {

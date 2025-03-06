@@ -37,7 +37,7 @@ export default function HealthcareProviderRegistration1() {
         <View style={styles.progressDot} />
       </View>
 
-      {/* First Name */}
+      {/* Input Fields */}
       <TextInput
         placeholder="First name"
         value={firstName}
@@ -46,7 +46,6 @@ export default function HealthcareProviderRegistration1() {
         placeholderTextColor="#666"
       />
 
-      {/* Last Name */}
       <TextInput
         placeholder="Last name"
         value={lastName}
@@ -55,7 +54,6 @@ export default function HealthcareProviderRegistration1() {
         placeholderTextColor="#666"
       />
 
-      {/* NIC Number */}
       <TextInput
         placeholder="NIC no"
         value={nicNumber}
@@ -64,7 +62,6 @@ export default function HealthcareProviderRegistration1() {
         placeholderTextColor="#666"
       />
 
-      {/* Professional Email Address */}
       <TextInput
         placeholder="Professional email address"
         value={email}
@@ -74,7 +71,6 @@ export default function HealthcareProviderRegistration1() {
         keyboardType="email-address"
       />
 
-      {/* Password */}
       <TextInput
         placeholder="Set a Password"
         value={password}
@@ -84,7 +80,6 @@ export default function HealthcareProviderRegistration1() {
         secureTextEntry
       />
 
-      {/* Phone Number */}
       <TextInput
         placeholder="Phone number"
         value={phoneNumber}
@@ -98,6 +93,13 @@ export default function HealthcareProviderRegistration1() {
       <TouchableOpacity style={styles.button} onPress={handleContinue}>
         <Text style={styles.buttonText}>Continue</Text>
       </TouchableOpacity>
+
+      {/* Decorative Dots */}
+      <View style={styles.decorativeDots}>
+        {Array.from({ length: 5 }).map((_, index) => (
+          <View key={index} style={styles.dot} />
+        ))}
+      </View>
     </View>
   );
 }
@@ -116,17 +118,19 @@ const styles = StyleSheet.create({
     left: 20,
   },
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
+    fontSize: 30,
+    fontWeight: '600',
     color: '#2D4BC2',
-    marginBottom: 30,
+    letterSpacing: 1.5,
     textAlign: 'center',
+    marginBottom: 20,
   },
   progressContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 20,
+    marginTop: 20,
   },
   progressDot: {
     width: 12,
@@ -148,16 +152,33 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   button: {
-    width: '100%',
+    width: '90%',
     backgroundColor: '#2D4BC2',
-    paddingVertical: 12,
-    borderRadius: 8,
+    paddingVertical: 15,
+    borderRadius: 20,
     alignItems: 'center',
+    elevation: 5,
     marginTop: 20,
   },
   buttonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
+    color: '#FFFFFF',
+    fontSize: 20,
+    fontWeight: '700',
+    letterSpacing: 1,
+  },
+  decorativeDots: {
+    position: 'absolute',
+    bottom: 30,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: 100,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#FF6F91',
+    opacity: 0.6,
   },
 });
+
