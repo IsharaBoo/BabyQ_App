@@ -1,7 +1,7 @@
-// app/ParentRegistration1.tsx
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 
 interface DOB {
   month: string;
@@ -26,6 +26,9 @@ const ParentRegistration1: React.FC = () => {
       setIsLoading(false);
       return;
     }
+    const handleBack = () => {
+      router.back(); // Navigate back to the previous screen
+    };
 
     if (!/^\d{10}$/.test(phoneNumber)) {
       Alert.alert('Error', 'Please enter a valid 10-digit phone number');
@@ -65,8 +68,18 @@ const ParentRegistration1: React.FC = () => {
     router.push('/login');
   };
 
+  const handleBack = () => {
+    router.back(); // Goes back to the previous screen
+  };
+
   return (
     <View style={styles.container}>
+      {/* Back Button */}
+      <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+           <Ionicons name="arrow-back" size={28} color="#2D4BC2" />
+            </TouchableOpacity>
+
+
       <Text style={styles.title}>Sign up as a Parent/Guardian</Text>
       <Text style={styles.subtitle}>Start Your Journey with Us!</Text>
 
@@ -206,6 +219,12 @@ const styles = StyleSheet.create({
   loginText: {
     color: '#2D4BC2',
     textDecorationLine: 'underline',
+  },
+  backButton: {
+    position: 'absolute',
+    top: 60,
+    left: 20,
+    zIndex: 1,
   },
 });
 

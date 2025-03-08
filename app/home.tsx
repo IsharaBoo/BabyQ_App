@@ -86,7 +86,7 @@ export default function HomePage() {
 
   const categories = [
     { id: '1', title: 'General Physician', icon: 'user-md', color: '#4E7CFE' },
-    { id: '2', title: 'Pediatrician', icon: 'baby', color: '#FE7C7C' },
+    { id: '2', title: 'Pediatrician', icon: 'child', color: '#FE7C7C' },
     { id: '3', title: 'Cardiologist', icon: 'heart', color: '#7CFE9A' },
     { id: '4', title: 'Orthopedics', icon: 'wheelchair', color: '#FED27C' },
     { id: '5', title: 'Neurologist', icon: 'brain', color: '#D77CFE' },

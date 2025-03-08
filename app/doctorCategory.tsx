@@ -26,7 +26,7 @@ const doctorsData = {
     { id: '10', name: 'Dr. Martinez', specialty: 'Epilepsy', rating: 4.6 },
   ],
   "Dermatologist": [
-    { id: '11', name: 'Dr. Clark', specialty: 'Skin Cancer', rating: 4.8 },
+    { id: '11', name: 'Dr. Clark', specialty: 'Skin Allergies', rating: 4.8 },
     { id: '12', name: 'Dr. Lewis', specialty: 'Cosmetic Derm', rating: 4.7 },
   ],
 };

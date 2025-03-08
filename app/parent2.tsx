@@ -1,7 +1,7 @@
-// app/ParentRegistration2.tsx
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons'; // Import Ionicons for back button
 import { RadioButton } from 'react-native-paper';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
@@ -81,14 +81,14 @@ export default function ParentRegistration2() {
         children: [
           {
             childName,
-      birthCertNumber,
-      dob: childDob,
-      gender,
-      bloodType: bloodType || null, // Set to null if undefined
-      weight: weight || null, // Set to null if undefined
-      height: height || null, // Set to null if undefined
-      allergies: allergies || null, // Set to null if undefined
-      additionalInfo: additionalInfo || null
+            birthCertNumber,
+            dob: childDob,
+            gender,
+            bloodType: bloodType || null, // Set to null if undefined
+            weight: weight || null, // Set to null if undefined
+            height: height || null, // Set to null if undefined
+            allergies: allergies || null, // Set to null if undefined
+            additionalInfo: additionalInfo || null
           },
         ],
         createdAt: new Date().toISOString(),
@@ -109,11 +109,22 @@ export default function ParentRegistration2() {
     }
   };
 
+  // Back button handler
+  const handleBack = () => {
+    router.back(); // Navigate back to the previous screen
+  };
+
   return (
     <View style={styles.container}>
+      {/* Back Button */}
+      <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+        <Ionicons name="arrow-back" size={30} color="#2D4BC2" />
+      </TouchableOpacity>
+
       <Text style={styles.title}>Sign up</Text>
       <Text style={styles.subtitle}>Details of your Child</Text>
 
+      {/* Input fields for child details */}
       <TextInput
         placeholder="Full name of the child"
         value={childName}
@@ -121,7 +132,6 @@ export default function ParentRegistration2() {
         style={styles.input}
         placeholderTextColor="#666"
       />
-
       <TextInput
         placeholder="Child’s birth certificate registration no"
         value={birthCertNumber}
@@ -129,7 +139,6 @@ export default function ParentRegistration2() {
         style={styles.input}
         placeholderTextColor="#666"
       />
-
       <View style={styles.dobContainer}>
         <TextInput
           placeholder="MM"
@@ -178,9 +187,7 @@ export default function ParentRegistration2() {
         onChangeText={setBloodType}
         style={styles.input}
         placeholderTextColor="#666"
-        keyboardType="default"
       />
-
       <TextInput
         placeholder="Weight (kg)"
         value={weight}
@@ -189,7 +196,6 @@ export default function ParentRegistration2() {
         placeholderTextColor="#666"
         keyboardType="numeric"
       />
-
       <TextInput
         placeholder="Height (cm)"
         value={height}
@@ -198,7 +204,6 @@ export default function ParentRegistration2() {
         placeholderTextColor="#666"
         keyboardType="numeric"
       />
-
       <TextInput
         placeholder="Allergies"
         value={allergies}
@@ -206,7 +211,6 @@ export default function ParentRegistration2() {
         style={styles.input}
         placeholderTextColor="#666"
       />
-
       <TextInput
         placeholder="Add any additional information"
         value={additionalInfo}
@@ -215,7 +219,6 @@ export default function ParentRegistration2() {
         placeholderTextColor="#666"
         multiline
       />
-
       {/* Password Field */}
       <TextInput
         placeholder="Password (min 6 characters)"
@@ -289,24 +292,25 @@ const styles = StyleSheet.create({
   },
   radioGroup: {
     flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 15,
+    marginBottom: 20,
   },
   radioItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginRight: 15,
+    marginRight: 20,
   },
   radioText: {
     fontSize: 16,
+    color: '#333',
   },
   button: {
     width: '100%',
+    height: 50,
     backgroundColor: '#2D4BC2',
-    paddingVertical: 12,
     borderRadius: 8,
+    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 15,
+    marginBottom: 20,
   },
   buttonText: {
     color: '#fff',
@@ -315,6 +319,13 @@ const styles = StyleSheet.create({
   },
   loginText: {
     color: '#2D4BC2',
+    fontSize: 16,
     textDecorationLine: 'underline',
+  },
+  backButton: {
+    position: 'absolute',
+    top: 40,
+    left: 20,
+    zIndex: 1,
   },
 });
