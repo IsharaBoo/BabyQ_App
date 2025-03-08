@@ -1,19 +1,35 @@
-import React from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Animated } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Animated, Alert } from 'react-native';
+import Checkbox from 'expo-checkbox';
 import { FontAwesome, Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-
-// TypeScript interface for animated values
-interface AnimatedStyles {
-  bounce: Animated.Value;
-}
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from './firebase'; // Corrected import for the same directory
+import AsyncStorage from '@react-native-async-storage/async-storage'; // For storing the email and password
 
 const LoginPage: React.FC = () => {
-  // Animation setup for the welcome text
-  const bounceValue = new Animated.Value(0);
+  const router = useRouter();
+  const bounceValue = useRef(new Animated.Value(0)).current;
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [rememberPassword, setRememberPassword] = useState<boolean>(false); // Remember me state
 
-  React.useEffect(() => {
+  useEffect(() => {
+    // Check if there is any stored email and password
+    const loadCredentials = async () => {
+      const storedEmail = await AsyncStorage.getItem('email');
+      const storedPassword = await AsyncStorage.getItem('password');
+      if (storedEmail && storedPassword) {
+        setEmail(storedEmail);
+        setPassword(storedPassword);
+        setRememberPassword(true); // Remember the user is checked
+      }
+    };
+
+    loadCredentials();
+
     Animated.loop(
       Animated.sequence([
         Animated.timing(bounceValue, {
@@ -28,41 +44,54 @@ const LoginPage: React.FC = () => {
         }),
       ])
     ).start();
-  }, [bounceValue]);
+  }, []);
 
   const animatedStyle = {
     transform: [
       {
         translateY: bounceValue.interpolate({
           inputRange: [0, 1],
-          outputRange: [0, -8],
+          outputRange: [0, -8] as [number, number], // TypeScript requires explicit tuple
         }),
       },
     ],
   };
 
-  const handleLogin = () => {
-    router.replace('/home');
+  const handleLogin = async () => {
+    console.log("Email entered:", email);
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      console.log("Login successful");
+
+      // Save the email and password to AsyncStorage if "Remember Me" is checked
+      if (rememberPassword) {
+        await AsyncStorage.setItem('email', email);
+        await AsyncStorage.setItem('password', password);
+      } else {
+        // Remove credentials from AsyncStorage if not remembered
+        await AsyncStorage.removeItem('email');
+        await AsyncStorage.removeItem('password');
+      }
+
+      router.replace('/home');
+    } catch (error: unknown) {
+      // TypeScript doesn't know error type by default, so we cast it
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+      console.error("Login error:", errorMessage);
+      Alert.alert("Login Failed", errorMessage);
+    }
   };
 
   return (
-    <LinearGradient
-      colors={['#E6F0FF', '#FFFFFF']}
-      style={styles.container}
-    >
-      {/* Back Button */}
+    <LinearGradient colors={['#E6F0FF', '#FFFFFF']} style={styles.container}>
       <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
         <Ionicons name="arrow-back" size={28} color="#2D4BC2" />
       </TouchableOpacity>
 
-      {/* Welcome Text */}
       <Animated.View style={[styles.welcomeContainer, animatedStyle]}>
-        <Text style={styles.welcomeText}>
-          Welcome
-        </Text>
+        <Text style={styles.welcomeText}>Welcome</Text>
       </Animated.View>
 
-      {/* Email Input */}
       <View style={styles.inputContainer}>
         <FontAwesome name="user-plus" size={22} color="#2D4BC2" style={styles.icon} />
         <TextInput
@@ -71,35 +100,54 @@ const LoginPage: React.FC = () => {
           placeholderTextColor="#7A7A7A"
           keyboardType="email-address"
           autoCapitalize="none"
+          value={email}
+          onChangeText={setEmail}
         />
       </View>
 
-      {/* Password Input */}
       <View style={styles.inputContainer}>
         <FontAwesome name="lock" size={22} color="#2D4BC2" style={styles.icon} />
         <TextInput
           placeholder="Password"
           style={styles.input}
           placeholderTextColor="#7A7A7A"
-          secureTextEntry
+          secureTextEntry={!showPassword}
+          value={password}
+          onChangeText={setPassword}
         />
+        <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+          <Ionicons
+            name={showPassword ? "eye" : "eye-off"}
+            size={22}
+            color="#2D4BC2"
+            style={styles.icon}
+          />
+        </TouchableOpacity>
       </View>
 
-      {/* Forgot Password */}
       <TouchableOpacity onPress={() => router.push('/resetPassword')}>
         <Text style={styles.forgotPassword}>Forgot Password?</Text>
       </TouchableOpacity>
 
-      {/* Login Button */}
-      <TouchableOpacity
-        style={styles.loginButton}
-        onPress={handleLogin}
-        activeOpacity={0.8}
-      >
+      <View style={styles.checkboxContainer}>
+        <Checkbox
+          value={rememberPassword}
+          onValueChange={setRememberPassword}
+          color="#2D4BC2"
+        />
+        <Text style={styles.rememberMeText}>Remember me</Text>
+      </View>
+
+      <TouchableOpacity style={styles.loginButton} onPress={handleLogin} activeOpacity={0.8}>
         <Text style={styles.loginText}>Login!</Text>
       </TouchableOpacity>
 
-      {/* Decorative Dots */}
+      <TouchableOpacity onPress={() => router.push('/registerSelect')} style={styles.registerContainer}>
+        <Text style={styles.registerText}>
+          Don't have an account? <Text style={styles.registerLink}>Register</Text>
+        </Text>
+      </TouchableOpacity>
+
       <View style={styles.decorativeDots}>
         {Array.from({ length: 5 }).map((_, index) => (
           <View key={index} style={styles.dot} />
@@ -165,7 +213,7 @@ const styles = StyleSheet.create({
   loginButton: {
     width: '90%',
     borderRadius: 20,
-    backgroundColor: '#2D4BC2', // Solid blue color
+    backgroundColor: '#2D4BC2',
     paddingVertical: 15,
     alignItems: 'center',
     elevation: 5,
@@ -189,6 +237,29 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: '#FF6F91',
     opacity: 0.6,
+  },
+  registerContainer: {
+    marginTop: 20,
+  },
+  registerText: {
+    fontSize: 14,
+    color: '#4A4A4A',
+    textAlign: 'center',
+  },
+  registerLink: {
+    color: '#2D4BC2',
+    fontWeight: 'bold',
+    textDecorationLine: 'underline',
+  },
+  checkboxContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  rememberMeText: {
+    fontSize: 14,
+    color: '#4A4A4A',
+    marginLeft: 10,
   },
 });
 

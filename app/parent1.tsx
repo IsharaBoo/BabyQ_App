@@ -1,46 +1,75 @@
+// app/ParentRegistration1.tsx
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import { router } from 'expo-router';
+import { useRouter } from 'expo-router';
 
-export default function ParentRegistration1() {
-  const [fullName, setFullName] = useState('');
-  const [nicNumber, setNicNumber] = useState('');
-  const [dob, setDob] = useState({ month: '', day: '', year: '' });
-  const [address, setAddress] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [email, setEmail] = useState('');
+interface DOB {
+  month: string;
+  day: string;
+  year: string;
+}
+
+const ParentRegistration1: React.FC = () => {
+  const router = useRouter();
+  const [fullName, setFullName] = useState<string>('');
+  const [nicNumber, setNicNumber] = useState<string>('');
+  const [dob, setDob] = useState<DOB>({ month: '', day: '', year: '' });
+  const [address, setAddress] = useState<string>('');
+  const [phoneNumber, setPhoneNumber] = useState<string>('');
+  const [email, setEmail] = useState<string>('');
+  const [isLoading, setIsLoading] = useState<boolean>(false); // Added for UX
 
   const handleContinue = () => {
-    // Validation logic
-    console.log('handleContinue called');
+    setIsLoading(true);
     if (!fullName || !nicNumber || !dob.day || !dob.month || !dob.year || !address || !phoneNumber || !email) {
-      console.log('Validation failed: Please fill in all fields');
       Alert.alert('Error', 'Please fill in all fields');
+      setIsLoading(false);
       return;
     }
 
     if (!/^\d{10}$/.test(phoneNumber)) {
-      console.log('Validation failed: Please enter a valid phone number');
-      Alert.alert('Error', 'Please enter a valid phone number');
+      Alert.alert('Error', 'Please enter a valid 10-digit phone number');
+      setIsLoading(false);
       return;
     }
 
     if (!/\S+@\S+\.\S+/.test(email)) {
-      console.log('Validation failed: Please enter a valid email address');
       Alert.alert('Error', 'Please enter a valid email address');
+      setIsLoading(false);
       return;
     }
 
-    console.log('Validation passed, navigating to /parent2');
-    router.push('/parent2'); // Navigate to the next registration page
+    // Validate DOB (basic check)
+    const dobDate = new Date(`${dob.year}-${dob.month}-${dob.day}`);
+    if (isNaN(dobDate.getTime()) || dobDate > new Date()) {
+      Alert.alert('Error', 'Please enter a valid date of birth');
+      setIsLoading(false);
+      return;
+    }
+
+    router.push({
+      pathname: '/parent2',
+      params: {
+        fullName,
+        nicNumber,
+        dob: JSON.stringify(dob),
+        address,
+        phoneNumber,
+        email,
+      },
+    });
+    setIsLoading(false);
+  };
+
+  const handleLoginRedirect = () => {
+    router.push('/login');
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Sign up as a Parent/Guardian</Text>
-      <Text style={styles.subtitle}>Start Your Journey with Us !</Text>
+      <Text style={styles.subtitle}>Start Your Journey with Us!</Text>
 
-      {/* Full Name */}
       <TextInput
         placeholder="Full name"
         value={fullName}
@@ -48,8 +77,6 @@ export default function ParentRegistration1() {
         style={styles.input}
         placeholderTextColor="#666"
       />
-
-      {/* NIC Number */}
       <TextInput
         placeholder="NIC number"
         value={nicNumber}
@@ -57,36 +84,35 @@ export default function ParentRegistration1() {
         style={styles.input}
         placeholderTextColor="#666"
       />
-
-      {/* Date of Birth */}
       <View style={styles.dobContainer}>
         <TextInput
           placeholder="DD"
           value={dob.day}
-          onChangeText={(text) => setDob({ ...dob, day: text })}
+          onChangeText={(text: string) => setDob((prev) => ({ ...prev, day: text }))}
           style={styles.dobInput}
           placeholderTextColor="#666"
           maxLength={2}
+          keyboardType="numeric"
         />
         <TextInput
           placeholder="MM"
           value={dob.month}
-          onChangeText={(text) => setDob({ ...dob, month: text })}
+          onChangeText={(text: string) => setDob((prev) => ({ ...prev, month: text }))}
           style={styles.dobInput}
           placeholderTextColor="#666"
           maxLength={2}
+          keyboardType="numeric"
         />
         <TextInput
           placeholder="YYYY"
           value={dob.year}
-          onChangeText={(text) => setDob({ ...dob, year: text })}
+          onChangeText={(text: string) => setDob((prev) => ({ ...prev, year: text }))}
           style={styles.dobInput}
           placeholderTextColor="#666"
           maxLength={4}
+          keyboardType="numeric"
         />
       </View>
-
-      {/* Address */}
       <TextInput
         placeholder="Address"
         value={address}
@@ -94,8 +120,6 @@ export default function ParentRegistration1() {
         style={styles.input}
         placeholderTextColor="#666"
       />
-
-      {/* Phone Number */}
       <TextInput
         placeholder="Phone number"
         value={phoneNumber}
@@ -104,8 +128,6 @@ export default function ParentRegistration1() {
         placeholderTextColor="#666"
         keyboardType="phone-pad"
       />
-
-      {/* Email */}
       <TextInput
         placeholder="Email"
         value={email}
@@ -113,20 +135,17 @@ export default function ParentRegistration1() {
         style={styles.input}
         placeholderTextColor="#666"
         keyboardType="email-address"
+        autoCapitalize="none"
       />
-
-      {/* Continue Button */}
-      <TouchableOpacity style={styles.button} onPress={handleContinue}>
-        <Text style={styles.buttonText}>Continue</Text>
+      <TouchableOpacity style={styles.button} onPress={handleContinue} disabled={isLoading}>
+        <Text style={styles.buttonText}>{isLoading ? 'Loading...' : 'Continue'}</Text>
       </TouchableOpacity>
-
-      {/* Login Link */}
-      <TouchableOpacity onPress={() => router.push('/login')}>
+      <TouchableOpacity onPress={handleLoginRedirect}>
         <Text style={styles.loginText}>Already have an account? Login</Text>
       </TouchableOpacity>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -189,3 +208,5 @@ const styles = StyleSheet.create({
     textDecorationLine: 'underline',
   },
 });
+
+export default ParentRegistration1;

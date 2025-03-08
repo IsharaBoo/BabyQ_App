@@ -1,23 +1,112 @@
+// app/ParentRegistration2.tsx
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
-import { useRouter } from 'expo-router';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { RadioButton } from 'react-native-paper';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
+import { auth, firestore } from './firebase';
+
+interface DOB {
+  month: string;
+  day: string;
+  year: string;
+}
 
 export default function ParentRegistration2() {
   const router = useRouter();
-  const [childName, setChildName] = useState('');
-  const [birthCertNumber, setBirthCertNumber] = useState('');
-  const [dob, setDob] = useState({ month: '', day: '', year: '' });
-  const [gender, setGender] = useState('');
-  const [bloodType, setBloodType] = useState('');
-  const [weight, setWeight] = useState('');
-  const [height, setHeight] = useState('');
-  const [allergies, setAllergies] = useState('');
-  const [additionalInfo, setAdditionalInfo] = useState('');
+  const params = useLocalSearchParams();
+  const [isLoading, setIsLoading] = useState<boolean>(false); // Added for UX
 
-  const handleSignUp = () => {
-    // Add validation and sign-up logic here
-    router.replace('/home'); // Redirect to Home Page after sign-up
+  // Parent data from params
+  const parentData = {
+    fullName: params.fullName as string,
+    nicNumber: params.nicNumber as string,
+    dob: JSON.parse(params.dob as string) as DOB,
+    address: params.address as string,
+    phoneNumber: params.phoneNumber as string,
+    email: params.email as string,
+  };
+
+  // Child data
+  const [childName, setChildName] = useState<string>('');
+  const [birthCertNumber, setBirthCertNumber] = useState<string>('');
+  const [childDob, setChildDob] = useState<DOB>({ month: '', day: '', year: '' });
+  const [gender, setGender] = useState<string>('');
+  const [bloodType, setBloodType] = useState<string>('');
+  const [weight, setWeight] = useState<string>('');
+  const [height, setHeight] = useState<string>('');
+  const [allergies, setAllergies] = useState<string>('');
+  const [additionalInfo, setAdditionalInfo] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+
+  const handleSignUp = async () => {
+    setIsLoading(true); // Start loading
+
+    // Validation
+    if (!childName || !birthCertNumber || !childDob.day || !childDob.month || !childDob.year || !gender || !password) {
+      Alert.alert('Error', 'Please fill in all required fields (child name, birth certificate, DOB, gender, and password)');
+      setIsLoading(false);
+      return;
+    }
+
+    if (password.length < 6) {
+      Alert.alert('Error', 'Password must be at least 6 characters long');
+      setIsLoading(false);
+      return;
+    }
+
+    // Validate child DOB
+    const childDobDate = new Date(`${childDob.year}-${childDob.month}-${childDob.day}`);
+    if (isNaN(childDobDate.getTime()) || childDobDate > new Date()) {
+      Alert.alert('Error', 'Please enter a valid child date of birth');
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      // Register user with Firebase Authentication
+      const userCredential = await createUserWithEmailAndPassword(auth, parentData.email, password);
+      const user = userCredential.user;
+
+      // Save parent and child data to Firestore
+      await setDoc(doc(firestore, 'users', user.uid), {
+        role: 'parent',
+        fullName: parentData.fullName,
+        nicNumber: parentData.nicNumber,
+        dob: parentData.dob,
+        address: parentData.address,
+        phoneNumber: parentData.phoneNumber,
+        email: parentData.email,
+        children: [
+          {
+            childName,
+      birthCertNumber,
+      dob: childDob,
+      gender,
+      bloodType: bloodType || null, // Set to null if undefined
+      weight: weight || null, // Set to null if undefined
+      height: height || null, // Set to null if undefined
+      allergies: allergies || null, // Set to null if undefined
+      additionalInfo: additionalInfo || null
+          },
+        ],
+        createdAt: new Date().toISOString(),
+      });
+
+      console.log('Parent registration successful');
+      Alert.alert('Success', 'Parent account created! Please log in.');
+      router.replace('/home'); // Or '/home' if you want direct navigation
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+      console.error('Registration error:', errorMessage);
+      Alert.alert(
+        'Registration Failed',
+        errorMessage.includes('auth/email-already-in-use') ? 'Email already in use' : errorMessage
+      );
+    } finally {
+      setIsLoading(false); // Stop loading
+    }
   };
 
   return (
@@ -25,7 +114,6 @@ export default function ParentRegistration2() {
       <Text style={styles.title}>Sign up</Text>
       <Text style={styles.subtitle}>Details of your Child</Text>
 
-      {/* Child's Full Name */}
       <TextInput
         placeholder="Full name of the child"
         value={childName}
@@ -34,7 +122,6 @@ export default function ParentRegistration2() {
         placeholderTextColor="#666"
       />
 
-      {/* Child's Birth Certificate Number */}
       <TextInput
         placeholder="Child’s birth certificate registration no"
         value={birthCertNumber}
@@ -43,12 +130,11 @@ export default function ParentRegistration2() {
         placeholderTextColor="#666"
       />
 
-      {/* Child's Date of Birth */}
       <View style={styles.dobContainer}>
         <TextInput
           placeholder="MM"
-          value={dob.month}
-          onChangeText={(text) => setDob({ ...dob, month: text })}
+          value={childDob.month}
+          onChangeText={(text) => setChildDob({ ...childDob, month: text })}
           style={styles.dobInput}
           placeholderTextColor="#666"
           maxLength={2}
@@ -56,8 +142,8 @@ export default function ParentRegistration2() {
         />
         <TextInput
           placeholder="DD"
-          value={dob.day}
-          onChangeText={(text) => setDob({ ...dob, day: text })}
+          value={childDob.day}
+          onChangeText={(text) => setChildDob({ ...childDob, day: text })}
           style={styles.dobInput}
           placeholderTextColor="#666"
           maxLength={2}
@@ -65,8 +151,8 @@ export default function ParentRegistration2() {
         />
         <TextInput
           placeholder="YYYY"
-          value={dob.year}
-          onChangeText={(text) => setDob({ ...dob, year: text })}
+          value={childDob.year}
+          onChangeText={(text) => setChildDob({ ...childDob, year: text })}
           style={styles.dobInput}
           placeholderTextColor="#666"
           maxLength={4}
@@ -74,7 +160,6 @@ export default function ParentRegistration2() {
         />
       </View>
 
-      {/* Gender Selection */}
       <Text style={styles.label}>Gender</Text>
       <View style={styles.radioGroup}>
         <TouchableOpacity onPress={() => setGender('Male')} style={styles.radioItem}>
@@ -87,7 +172,6 @@ export default function ParentRegistration2() {
         </TouchableOpacity>
       </View>
 
-      {/* Blood Type */}
       <TextInput
         placeholder="Blood type"
         value={bloodType}
@@ -97,7 +181,6 @@ export default function ParentRegistration2() {
         keyboardType="default"
       />
 
-      {/* Weight */}
       <TextInput
         placeholder="Weight (kg)"
         value={weight}
@@ -107,7 +190,6 @@ export default function ParentRegistration2() {
         keyboardType="numeric"
       />
 
-      {/* Height */}
       <TextInput
         placeholder="Height (cm)"
         value={height}
@@ -117,7 +199,6 @@ export default function ParentRegistration2() {
         keyboardType="numeric"
       />
 
-      {/* Allergies */}
       <TextInput
         placeholder="Allergies"
         value={allergies}
@@ -126,7 +207,6 @@ export default function ParentRegistration2() {
         placeholderTextColor="#666"
       />
 
-      {/* Additional Information */}
       <TextInput
         placeholder="Add any additional information"
         value={additionalInfo}
@@ -136,12 +216,20 @@ export default function ParentRegistration2() {
         multiline
       />
 
-      {/* Sign Up Button */}
-      <TouchableOpacity style={styles.button} onPress={handleSignUp}>
-        <Text style={styles.buttonText}>Sign up</Text>
+      {/* Password Field */}
+      <TextInput
+        placeholder="Password (min 6 characters)"
+        value={password}
+        onChangeText={setPassword}
+        style={styles.input}
+        placeholderTextColor="#666"
+        secureTextEntry
+      />
+
+      <TouchableOpacity style={styles.button} onPress={handleSignUp} disabled={isLoading}>
+        <Text style={styles.buttonText}>{isLoading ? 'Signing Up...' : 'Sign up'}</Text>
       </TouchableOpacity>
 
-      {/* Login Link */}
       <TouchableOpacity onPress={() => router.push('/login')}>
         <Text style={styles.loginText}>Already have an account? Login</Text>
       </TouchableOpacity>

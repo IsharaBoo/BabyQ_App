@@ -26,7 +26,7 @@ export default function ResetPW2() {
     <View style={styles.container}>
       {/* Back Button */}
       <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-        <Ionicons name="chevron-back" size={24} color="black" />
+        <Ionicons name="arrow-back" size={24} color="black" />
       </TouchableOpacity>
 
       {/* Title & Description */}
@@ -84,17 +84,20 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: 'absolute',
-    top: 40,
+    top: 60,
     left: 20,
+    zIndex: 1,
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
-    color: '#000',
-    marginTop: 50,
+    color: '#2D4BC2',
+    textAlign: 'left',
+    marginLeft: 45,
+    marginTop: 15,
   },
   description: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#555',
     marginTop: 20,
     marginBottom: 30,
@@ -116,12 +119,14 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   changeButton: {
-    backgroundColor: '#2D4BC2',
-    paddingVertical: 12,
+    width: '90%',
+    borderRadius: 20,
+    backgroundColor: '#2D4BC2', // Solid blue color
+    paddingVertical: 15,
     alignItems: 'center',
-    borderRadius: 8,
-    marginBottom: 10,
-    marginTop: 10,
+    elevation: 5,
+    marginLeft: 20,
+    marginTop: 20,
   },
   changeButtonText: {
     color: '#fff',

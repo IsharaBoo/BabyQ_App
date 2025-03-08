@@ -3,17 +3,16 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'reac
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 
+// Define the navigation types
 type RootStackParamList = {
   ResetPW: undefined;
-  // Add other routes here if needed
 };
 
 export default function ResetPasswordScreen() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState<string>(''); // Explicit type annotation
 
-  const handleReset = () => {
-    // Validation logic
+  const handleReset = (): void => {
     if (!email) {
       Alert.alert('Error', 'Please enter your email address');
       return;
@@ -24,24 +23,20 @@ export default function ResetPasswordScreen() {
       return;
     }
 
-    // Add your reset logic here (e.g., send a confirmation code to the email)
-    navigation.navigate('ResetPW'); // Navigate to the Reset Password Confirmation Screen
+    navigation.navigate('ResetPW');
   };
 
   return (
     <View style={styles.container}>
-      {/* Back Button */}
       <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-        <Ionicons name="chevron-back" size={24} color="black" />
+        <Ionicons name="arrow-back" size={28} color="#2D4BC2" />
       </TouchableOpacity>
 
-      {/* Title & Description */}
       <Text style={styles.title}>Reset password</Text>
       <Text style={styles.description}>
         Enter the email address you used when you signed up for your account, and we will email a link to reset your password.
       </Text>
 
-      {/* Email Input */}
       <TextInput
         style={styles.input}
         placeholder="Email address"
@@ -52,12 +47,10 @@ export default function ResetPasswordScreen() {
         onChangeText={setEmail}
       />
 
-      {/* Reset Button */}
       <TouchableOpacity style={styles.resetButton} onPress={handleReset}>
         <Text style={styles.resetButtonText}>Reset</Text>
       </TouchableOpacity>
 
-      {/* Back Button */}
       <TouchableOpacity style={styles.backButtonSecondary} onPress={() => navigation.goBack()}>
         <Text style={styles.backButtonText}>Back</Text>
       </TouchableOpacity>
@@ -74,19 +67,22 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: 'absolute',
-    top: 40,
+    top: 60,
     left: 20,
+    zIndex: 1,
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
-    color: '#000',
-    marginTop: 50,
+    color: '#2D4BC2',
+    textAlign: 'left',
+    marginLeft: 45,
+    marginTop: 15,
   },
   description: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#555',
-    marginTop: 20,
+    marginTop: 40,
     marginBottom: 30,
   },
   input: {
@@ -98,26 +94,34 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   resetButton: {
+    width: '90%',
+    borderRadius: 20,
     backgroundColor: '#2D4BC2',
-    paddingVertical: 12,
+    paddingVertical: 15,
     alignItems: 'center',
-    borderRadius: 8,
-    marginBottom: 10,
+    elevation: 5,
+    marginLeft: 20,
   },
   resetButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '700',
+    letterSpacing: 1,
   },
   backButtonSecondary: {
+    width: '90%',
+    borderRadius: 20,
+    marginTop: 20,
     backgroundColor: '#A9B8E8',
     paddingVertical: 12,
     alignItems: 'center',
-    borderRadius: 8,
+    marginLeft: 20,
   },
   backButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '700',
+    letterSpacing: 1,
   },
 });
+
