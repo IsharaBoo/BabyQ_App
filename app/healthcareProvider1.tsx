@@ -1,35 +1,66 @@
+// app/HealthcareProviderRegistration1.tsx
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons'; // Import Ionicons from react-native-vector-icons
+import { Ionicons } from '@expo/vector-icons';
 
 export default function HealthcareProviderRegistration1() {
   const router = useRouter();
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [nicNumber, setNicNumber] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
+  const [firstName, setFirstName] = useState<string>('');
+  const [lastName, setLastName] = useState<string>('');
+  const [nicNumber, setNicNumber] = useState<string>('');
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [phoneNumber, setPhoneNumber] = useState<string>('');
+
+  const validateForm = () => {
+    if (!firstName || !lastName || !nicNumber || !email || !password || !phoneNumber) {
+      Alert.alert('Error', 'Please fill in all fields');
+      return false;
+    }
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      Alert.alert('Error', 'Please enter a valid email address');
+      return false;
+    }
+    if (password.length < 6) {
+      Alert.alert('Error', 'Password must be at least 6 characters');
+      return false;
+    }
+    if (!/^\d{10}$/.test(phoneNumber)) {
+      Alert.alert('Error', 'Phone number must be 10 digits');
+      return false;
+    }
+    return true;
+  };
 
   const handleContinue = () => {
-    router.push('/healthcareProvider2'); // Navigate to the next registration page
+    if (validateForm()) {
+      router.push({
+        pathname: '/healthcareProvider2',
+        params: {
+          firstName,
+          lastName,
+          nicNumber,
+          email,
+          password,
+          phoneNumber,
+        },
+      });
+    }
   };
 
   const handleGoBack = () => {
-    router.back(); // Navigate back to the previous screen
+    router.back();
   };
 
   return (
     <View style={styles.container}>
-      {/* Back Button */}
       <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
         <Ionicons name="arrow-back" size={24} color="#2D4BC2" />
       </TouchableOpacity>
 
       <Text style={styles.title}>Get started your journey with us!</Text>
 
-      {/* Progress Bar */}
       <View style={styles.progressContainer}>
         <View style={[styles.progressDot, styles.active]} />
         <View style={styles.progressDot} />
@@ -37,7 +68,6 @@ export default function HealthcareProviderRegistration1() {
         <View style={styles.progressDot} />
       </View>
 
-      {/* Input Fields */}
       <TextInput
         placeholder="First name"
         value={firstName}
@@ -69,10 +99,11 @@ export default function HealthcareProviderRegistration1() {
         style={styles.input}
         placeholderTextColor="#666"
         keyboardType="email-address"
+        autoCapitalize="none"
       />
 
       <TextInput
-        placeholder="Set a Password"
+        placeholder="Set a Password (min 6 characters)"
         value={password}
         onChangeText={setPassword}
         style={styles.input}
@@ -81,7 +112,7 @@ export default function HealthcareProviderRegistration1() {
       />
 
       <TextInput
-        placeholder="Phone number"
+        placeholder="Phone number (10 digits)"
         value={phoneNumber}
         onChangeText={setPhoneNumber}
         style={styles.input}
@@ -89,12 +120,10 @@ export default function HealthcareProviderRegistration1() {
         keyboardType="phone-pad"
       />
 
-      {/* Continue Button */}
       <TouchableOpacity style={styles.button} onPress={handleContinue}>
         <Text style={styles.buttonText}>Continue</Text>
       </TouchableOpacity>
 
-      {/* Decorative Dots */}
       <View style={styles.decorativeDots}>
         {Array.from({ length: 5 }).map((_, index) => (
           <View key={index} style={styles.dot} />
@@ -181,4 +210,3 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
 });
-

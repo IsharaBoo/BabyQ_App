@@ -1,51 +1,80 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  TextInput, 
-  TouchableOpacity, 
-  StyleSheet, 
-  ScrollView, 
-  FlatList, 
-  Image, 
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+  FlatList,
+  Image,
   Linking,
   Animated,
-  Dimensions
+  Dimensions,
 } from 'react-native';
 import { FontAwesome, FontAwesome5 } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { BlurView } from 'expo-blur';
 import { auth } from './firebase';
-import { onAuthStateChanged } from 'firebase/auth';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width } = Dimensions.get('window');
 
 export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [greeting, setGreeting] = useState('Good morning');
+  const [user, setUser] = useState<any>(null); // Replace with proper interface later
   const router = useRouter();
   const scrollY = new Animated.Value(0);
-  
-  // Animation values
+
   const fadeAnim = useState(new Animated.Value(0))[0];
   const slideAnim = useState(new Animated.Value(50))[0];
 
-  // Mock user data (replace with actual user data from your auth system)
-  const user = {
-    name: 'Peter Parker',
-    email: 'peter.parker@example.com',
-    role: 'Parent/Guardian',
-    registrationDate: '15 Jan 2023',
-  };
-
   useEffect(() => {
+    // Listen for auth state changes
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        // User is logged in, fetch their data from AsyncStorage
+        try {
+          const savedUserData = await AsyncStorage.getItem('userData');
+          if (savedUserData) {
+            const userData = JSON.parse(savedUserData);
+            setUser(userData);
+          } else {
+            // Fallback if no AsyncStorage data
+            setUser({
+              name: (firebaseUser.email?.split('@')[0] || 'User')
+                .replace(/[.\d]/g, ' ') // Replace dots and numbers with spaces
+                .replace(/\s+/g, ' ')   // Collapse multiple spaces into one
+                .trim(),                // Remove leading/trailing spaces
+              email: firebaseUser.email || 'N/A',
+              role: 'Parent/Guardian',
+              registrationDate: firebaseUser.metadata.creationTime
+              ? new Date(firebaseUser.metadata.creationTime).toLocaleDateString('en-US', {
+                  day: '2-digit',
+                  month: 'short',
+                  year: 'numeric',
+                }): 'N/A',
+              children: [],
+            });
+          }
+        } catch (error) {
+          console.error('Failed to fetch user data from AsyncStorage:', error);
+        }
+      } else {
+        // No user logged in, redirect to login
+        router.replace('/login');
+      }
+    });
+
     // Set greeting based on time of day
     const hours = new Date().getHours();
-    if (hours < 12) setGreeting('Good morning');
-    else if (hours < 18) setGreeting('Good afternoon');
-    else setGreeting('Good evening');
-    
+    if (hours < 12) setGreeting('Good Morning');
+    else if (hours < 18) setGreeting('Good Afternoon');
+    else setGreeting('Good Evening');
+
     // Animate components on load
     Animated.parallel([
       Animated.timing(fadeAnim, {
@@ -59,6 +88,9 @@ export default function HomePage() {
         useNativeDriver: true,
       }),
     ]).start();
+
+    // Cleanup subscription
+    return () => unsubscribe();
   }, []);
 
   const handleSearch = () => {
@@ -77,7 +109,9 @@ export default function HomePage() {
 
   const handleLogout = async () => {
     try {
-      await auth.signOut();
+      await signOut(auth);
+      await AsyncStorage.removeItem('userData');
+      await AsyncStorage.removeItem('email');
       router.replace('/login');
     } catch (error) {
       console.error('Failed to logout:', error);
@@ -104,40 +138,36 @@ export default function HomePage() {
   const news = [
     { id: '1', title: 'Protect Your Child from Diabetes: Prevention Starts Today', date: '11 Dec 2024', image: require('../assets/images/diabetes.png'), url: 'https://newsinhealth.nih.gov/2024/11/preventing-diabetes', tag: 'Prevention' },
     { id: '2', title: '6 Essential Tips to Protect Your Child during the Flu Season', date: '12 Dec 2024', image: require('../assets/images/flu.png'), url: 'https://www.choa.org/parent-resources/flu/how-to-prevent-the-flu', tag: 'Seasonal' },
-    { id: '3', title: 'Rising Malaria thread around the world', date: '10 Dec 2024', image: require('../assets/images/threat.png'), url: 'https://www.weforum.org/stories/2022/02/eliminating-malaria-is-within-reach/', tag: 'Global' },
+    { id: '3', title: 'Rising Malaria threat around the world', date: '10 Dec 2024', image: require('../assets/images/threat.png'), url: 'https://www.weforum.org/stories/2022/02/eliminating-malaria-is-within-reach/', tag: 'Global' },
     { id: '4', title: '5,000 unvaccinated children in Colombo city spark fear of disease resurgence', date: '3 Jan 2025', image: require('../assets/images/vaccine.jpeg'), url: 'https://island.lk/5000-unvaccinated-children-in-colombo-city-spark-fear-of-disease-resurgence/', tag: 'Alert' },
   ];
 
-  // Dynamic header opacity based on scroll position
   const headerOpacity = scrollY.interpolate({
     inputRange: [0, 100],
     outputRange: [1, 0],
     extrapolate: 'clamp',
   });
 
+  if (!user) {
+    return <Text>Loading...</Text>;
+  }
+
   return (
     <View style={styles.container}>
-      {/* Dynamic Gradient Background */}
-      <LinearGradient
-        colors={['#E8F0FF', '#FFFFFF']}
-        style={styles.gradientBackground}
-      />
+      <LinearGradient colors={['#E8F0FF', '#FFFFFF']} style={styles.gradientBackground} />
 
-      {/* Main Content */}
-      <Animated.ScrollView 
+      <Animated.ScrollView
         style={styles.contentContainer}
         showsVerticalScrollIndicator={false}
-        onScroll={Animated.event(
-          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-          { useNativeDriver: false }
-        )}
+        onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], {
+          useNativeDriver: false,
+        })}
         scrollEventThrottle={16}
       >
-        {/* Animated Greeting Section */}
-        <Animated.View 
+        <Animated.View
           style={[
-            styles.greetingContainer, 
-            { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }
+            styles.greetingContainer,
+            { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
           ]}
         >
           <FontAwesome name="user-circle" size={28} color="#2D4BC2" />
@@ -147,11 +177,10 @@ export default function HomePage() {
           </View>
         </Animated.View>
 
-        {/* Search Bar with Shadow */}
-        <Animated.View 
+        <Animated.View
           style={[
-            styles.searchContainer, 
-            { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }
+            styles.searchContainer,
+            { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
           ]}
         >
           <View style={styles.searchInputContainer}>
@@ -176,7 +205,6 @@ export default function HomePage() {
           </TouchableOpacity>
         </Animated.View>
 
-        {/* Ads Section with Card Effect */}
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>Featured Services</Text>
           <FlatList
@@ -195,7 +223,6 @@ export default function HomePage() {
           />
         </View>
 
-        {/* Categories Section with Animated Icons - Now using FontAwesome5 */}
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>Specialist Categories</Text>
           <FlatList
@@ -214,11 +241,7 @@ export default function HomePage() {
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                 >
-                  <FontAwesome5 
-                    name={item.icon} 
-                    size={24} 
-                    color="#FFFFFF" 
-                  />
+                  <FontAwesome5 name={item.icon} size={24} color="#FFFFFF" />
                 </LinearGradient>
                 <Text style={styles.categoryTitle}>{item.title}</Text>
               </TouchableOpacity>
@@ -226,20 +249,15 @@ export default function HomePage() {
           />
         </View>
 
-        {/* News/Articles Section with Card Effect */}
         <View style={styles.sectionContainer}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Latest News</Text>
-            <TouchableOpacity>
-              {/* Add navigation to full news list if needed */}
-            </TouchableOpacity>
           </View>
-          
           <View style={styles.newsContainer}>
             {news.map((article) => (
-              <TouchableOpacity 
-                key={article.id} 
-                style={styles.newsCard} 
+              <TouchableOpacity
+                key={article.id}
+                style={styles.newsCard}
                 onPress={() => handlePress(article.url)}
               >
                 <Image source={article.image} style={styles.newsImage} />
@@ -255,7 +273,6 @@ export default function HomePage() {
           </View>
         </View>
 
-        {/* User Profile Summary Section */}
         <View style={styles.profileContainer}>
           <LinearGradient
             colors={['#2D4BC220', '#2D4BC205']}
@@ -267,24 +284,55 @@ export default function HomePage() {
               <FontAwesome name="user" size={20} color="#2D4BC2" />
               <Text style={styles.profileTitle}>Your Profile</Text>
             </View>
-            
+
             <View style={styles.profileContent}>
               <View style={styles.profileItem}>
                 <Text style={styles.profileLabel}>Name</Text>
                 <Text style={styles.profileValue}>{user.name}</Text>
               </View>
-              
               <View style={styles.profileItem}>
                 <Text style={styles.profileLabel}>Email</Text>
                 <Text style={styles.profileValue}>{user.email}</Text>
               </View>
-              
-              
+              <View style={styles.profileItem}>
+                <Text style={styles.profileLabel}>Role</Text>
+                <Text style={styles.profileValue}>{user.role}</Text>
+              </View>
+              <View style={styles.profileItem}>
+                <Text style={styles.profileLabel}>Registered On</Text>
+                <Text style={styles.profileValue}>{user.registrationDate}</Text>
+              </View>
+              {user.nicNumber && (
+                <View style={styles.profileItem}>
+                  <Text style={styles.profileLabel}>NIC Number</Text>
+                  <Text style={styles.profileValue}>{user.nicNumber}</Text>
+                </View>
+              )}
+              {user.dob && (
+                <View style={styles.profileItem}>
+                  <Text style={styles.profileLabel}>Date of Birth</Text>
+                  <Text style={styles.profileValue}>
+                    {user.dob.month}/{user.dob.day}/{user.dob.year}
+                  </Text>
+                </View>
+              )}
+              {user.address && (
+                <View style={styles.profileItem}>
+                  <Text style={styles.profileLabel}>Address</Text>
+                  <Text style={styles.profileValue}>{user.address}</Text>
+                </View>
+              )}
+              {user.phoneNumber && (
+                <View style={styles.profileItem}>
+                  <Text style={styles.profileLabel}>Phone Number</Text>
+                  <Text style={styles.profileValue}>{user.phoneNumber}</Text>
+                </View>
+              )}
             </View>
-            
-            <TouchableOpacity 
+
+            <TouchableOpacity
               style={styles.profileButton}
-              onPress={() => router.push('/profile' as any)} // Adjust route as needed
+              onPress={() => router.push('/profile' as any)}
             >
               <Text style={styles.profileButtonText}>Edit Your Profile</Text>
             </TouchableOpacity>
@@ -294,28 +342,23 @@ export default function HomePage() {
           </LinearGradient>
         </View>
 
-        {/* Space for bottom navbar */}
         <View style={styles.bottomSpace} />
       </Animated.ScrollView>
 
-     {/* Glass-effect Bottom Navbar */}
-     <BlurView intensity={20} style={styles.navbarContainer}>
+      <BlurView intensity={20} style={styles.navbarContainer}>
         <View style={styles.navbar}>
           <TouchableOpacity style={styles.navItem} onPress={() => router.replace('/home')}>
             <FontAwesome name="home" size={22} color="#2D4BC2" />
             <Text style={[styles.navText, styles.activeNavText]}>Home</Text>
           </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.navItem} onPress={() => router.replace('/community'as any)}>
+          <TouchableOpacity style={styles.navItem} onPress={() => router.replace('/community' as any)}>
             <FontAwesome name="users" size={22} color="#888" />
             <Text style={styles.navText}>Community</Text>
           </TouchableOpacity>
-          
           <TouchableOpacity style={styles.navItem} onPress={() => router.replace('/Insights' as any)}>
             <FontAwesome name="line-chart" size={22} color="#888" />
             <Text style={styles.navText}>Insights</Text>
           </TouchableOpacity>
-          
           <TouchableOpacity style={styles.navItem} onPress={() => router.replace('/MedicalHistory' as any)}>
             <FontAwesome name="file-text" size={22} color="#888" />
             <Text style={styles.navText}>Medical History</Text>
@@ -572,11 +615,23 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
+    marginBottom: 10,
   },
   profileButtonText: {
     fontSize: 14,
     fontWeight: 'bold',
     color: '#2D4BC2',
+  },
+  logoutButton: {
+    backgroundColor: '#FF4D4D',
+    paddingVertical: 10,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  logoutButtonText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#FFF',
   },
   bottomSpace: {
     height: 100,
@@ -610,17 +665,5 @@ const styles = StyleSheet.create({
   activeNavText: {
     color: '#2D4BC2',
     fontWeight: '600',
-  },
-  logoutButton: {
-    backgroundColor: '#FF4D4D',
-    paddingVertical: 10,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  logoutButtonText: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#FFF',
   },
 });

@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons'; // Import Ionicons for back button
+import { Ionicons } from '@expo/vector-icons';
 import { RadioButton } from 'react-native-paper';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, setLogLevel } from 'firebase/firestore';
 import { auth, firestore } from './firebase';
+setLogLevel('debug'); // Add this at the top of your file
 
 interface DOB {
   month: string;
@@ -16,9 +17,8 @@ interface DOB {
 export default function ParentRegistration2() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const [isLoading, setIsLoading] = useState<boolean>(false); // Added for UX
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  // Parent data from params
   const parentData = {
     fullName: params.fullName as string,
     nicNumber: params.nicNumber as string,
@@ -28,7 +28,6 @@ export default function ParentRegistration2() {
     email: params.email as string,
   };
 
-  // Child data
   const [childName, setChildName] = useState<string>('');
   const [birthCertNumber, setBirthCertNumber] = useState<string>('');
   const [childDob, setChildDob] = useState<DOB>({ month: '', day: '', year: '' });
@@ -41,9 +40,8 @@ export default function ParentRegistration2() {
   const [password, setPassword] = useState<string>('');
 
   const handleSignUp = async () => {
-    setIsLoading(true); // Start loading
+    setIsLoading(true);
 
-    // Validation
     if (!childName || !birthCertNumber || !childDob.day || !childDob.month || !childDob.year || !gender || !password) {
       Alert.alert('Error', 'Please fill in all required fields (child name, birth certificate, DOB, gender, and password)');
       setIsLoading(false);
@@ -56,7 +54,6 @@ export default function ParentRegistration2() {
       return;
     }
 
-    // Validate child DOB
     const childDobDate = new Date(`${childDob.year}-${childDob.month}-${childDob.day}`);
     if (isNaN(childDobDate.getTime()) || childDobDate > new Date()) {
       Alert.alert('Error', 'Please enter a valid child date of birth');
@@ -65,11 +62,9 @@ export default function ParentRegistration2() {
     }
 
     try {
-      // Register user with Firebase Authentication
       const userCredential = await createUserWithEmailAndPassword(auth, parentData.email, password);
       const user = userCredential.user;
 
-      // Save parent and child data to Firestore
       await setDoc(doc(firestore, 'users', user.uid), {
         role: 'parent',
         fullName: parentData.fullName,
@@ -84,39 +79,41 @@ export default function ParentRegistration2() {
             birthCertNumber,
             dob: childDob,
             gender,
-            bloodType: bloodType || null, // Set to null if undefined
-            weight: weight || null, // Set to null if undefined
-            height: height || null, // Set to null if undefined
-            allergies: allergies || null, // Set to null if undefined
-            additionalInfo: additionalInfo || null
+            bloodType: bloodType || null,
+            weight: weight || null,
+            height: height || null,
+            allergies: allergies || null,
+            additionalInfo: additionalInfo || null,
           },
         ],
         createdAt: new Date().toISOString(),
       });
 
-      console.log('Parent registration successful');
-      Alert.alert('Success', 'Parent account created! Please log in.');
-      router.replace('/home'); // Or '/home' if you want direct navigation
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-      console.error('Registration error:', errorMessage);
-      Alert.alert(
-        'Registration Failed',
-        errorMessage.includes('auth/email-already-in-use') ? 'Email already in use' : errorMessage
-      );
+      Alert.alert('Success', 'Parent account created successfully!');
+      router.push('/home'); // Auto-navigate to home since user is logged in
+    } catch (error: any) {
+      let errorMessage = 'An unknown error occurred';
+      if (error.code === 'auth/email-already-in-use') {
+        errorMessage = 'This email is already in use.';
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = 'Please enter a valid email address.';
+      
+      } else {
+        errorMessage = error.message;
+      }
+      console.error('Registration error:', error);
+      Alert.alert('Registration Failed', errorMessage);
     } finally {
-      setIsLoading(false); // Stop loading
+      setIsLoading(false);
     }
   };
 
-  // Back button handler
   const handleBack = () => {
-    router.back(); // Navigate back to the previous screen
+    router.back();
   };
 
   return (
-    <View style={styles.container}>
-      {/* Back Button */}
+    <ScrollView contentContainerStyle={styles.container}>
       <TouchableOpacity style={styles.backButton} onPress={handleBack}>
         <Ionicons name="arrow-back" size={30} color="#2D4BC2" />
       </TouchableOpacity>
@@ -124,7 +121,6 @@ export default function ParentRegistration2() {
       <Text style={styles.title}>Sign up</Text>
       <Text style={styles.subtitle}>Details of your Child</Text>
 
-      {/* Input fields for child details */}
       <TextInput
         placeholder="Full name of the child"
         value={childName}
@@ -219,7 +215,6 @@ export default function ParentRegistration2() {
         placeholderTextColor="#666"
         multiline
       />
-      {/* Password Field */}
       <TextInput
         placeholder="Password (min 6 characters)"
         value={password}
@@ -236,13 +231,13 @@ export default function ParentRegistration2() {
       <TouchableOpacity onPress={() => router.push('/login')}>
         <Text style={styles.loginText}>Already have an account? Login</Text>
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1, // Allow content to grow and take up available space
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#fff',
@@ -301,31 +296,29 @@ const styles = StyleSheet.create({
   },
   radioText: {
     fontSize: 16,
-    color: '#333',
   },
   button: {
+    backgroundColor: '#2D4BC2',
     width: '100%',
     height: 50,
-    backgroundColor: '#2D4BC2',
-    borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 20,
+    borderRadius: 8,
+    marginBottom: 15,
   },
   buttonText: {
-    color: '#fff',
     fontSize: 18,
+    color: '#fff',
     fontWeight: 'bold',
   },
   loginText: {
     color: '#2D4BC2',
     fontSize: 16,
-    textDecorationLine: 'underline',
+    marginTop: 10,
   },
   backButton: {
     position: 'absolute',
     top: 40,
     left: 20,
-    zIndex: 1,
   },
 });

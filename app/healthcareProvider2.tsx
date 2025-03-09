@@ -1,23 +1,30 @@
+// app/HealthcareProviderRegistration2.tsx
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons'; // Import Ionicons from react-native-vector-icons
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function HealthcareProviderRegistration2() {
   const router = useRouter();
-  const [medicalLicenseNumber, setMedicalLicenseNumber] = useState('');
-  const [affiliatedHospital, setAffiliatedHospital] = useState('');
-  const [workplaceAddress, setWorkplaceAddress] = useState('');
-  const [position, setPosition] = useState('');
+  const params = useLocalSearchParams();
 
-  // Validation function
+  // Retrieve data from HealthcareProviderRegistration1
+  const providerData = {
+    firstName: params.firstName as string,
+    lastName: params.lastName as string,
+    nicNumber: params.nicNumber as string,
+    email: params.email as string,
+    password: params.password as string,
+    phoneNumber: params.phoneNumber as string,
+  };
+
+  const [medicalLicenseNumber, setMedicalLicenseNumber] = useState<string>('');
+  const [affiliatedHospital, setAffiliatedHospital] = useState<string>('');
+  const [workplaceAddress, setWorkplaceAddress] = useState<string>('');
+  const [position, setPosition] = useState<string>('');
+
   const validateForm = () => {
-    if (
-      !medicalLicenseNumber.trim() ||
-      !affiliatedHospital.trim() ||
-      !workplaceAddress.trim() ||
-      !position.trim()
-    ) {
+    if (!medicalLicenseNumber || !affiliatedHospital || !workplaceAddress || !position) {
       Alert.alert('Error', 'Please fill in all fields');
       return false;
     }
@@ -25,34 +32,33 @@ export default function HealthcareProviderRegistration2() {
   };
 
   const handleContinue = () => {
-    if (validateForm()) {
-      router.push('/healthcareProvider3');
-    }
+    if (!validateForm()) return;
+
+    // Pass all collected data to HealthcareProviderRegistration3 using query params
+    router.push(
+      `/healthcareProvider3?firstName=${encodeURIComponent(providerData.firstName)}&lastName=${encodeURIComponent(providerData.lastName)}&nicNumber=${encodeURIComponent(providerData.nicNumber)}&email=${encodeURIComponent(providerData.email)}&password=${encodeURIComponent(providerData.password)}&phoneNumber=${encodeURIComponent(providerData.phoneNumber)}&medicalLicenseNumber=${encodeURIComponent(medicalLicenseNumber)}&affiliatedHospital=${encodeURIComponent(affiliatedHospital)}&workplaceAddress=${encodeURIComponent(workplaceAddress)}&position=${encodeURIComponent(position)}`
+    );
   };
 
   const handleGoBack = () => {
-      router.back(); // Navigate back to the previous screen
-    };
-  
-    return (
-      <View style={styles.container}>
-        {/* Back Button */}
-        <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
-          <Ionicons name="arrow-back" size={24} color="#2D4BC2" />
-        </TouchableOpacity>
-  
+    router.back();
+  };
+
+  return (
+    <View style={styles.container}>
+      <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
+        <Ionicons name="arrow-back" size={24} color="#2D4BC2" />
+      </TouchableOpacity>
 
       <Text style={styles.title}>You're almost there!</Text>
 
-      {/* Progress Bar */}
       <View style={styles.progressContainer}>
         <View style={[styles.progressDot, styles.completed]} />
         <View style={[styles.progressDot, styles.active]} />
-        <View style={[styles.progressDot]} />
+        <View style={styles.progressDot} />
         <View style={styles.progressDot} />
       </View>
 
-      {/* Medical License Number */}
       <TextInput
         placeholder="Medical licence number"
         value={medicalLicenseNumber}
@@ -61,16 +67,14 @@ export default function HealthcareProviderRegistration2() {
         placeholderTextColor="#666"
       />
 
-      {/* Affiliated Hospital/Clinic */}
       <TextInput
-        placeholder="Affiliated hospital/ clinic"
+        placeholder="Affiliated hospital/clinic"
         value={affiliatedHospital}
         onChangeText={setAffiliatedHospital}
         style={styles.input}
         placeholderTextColor="#666"
       />
 
-      {/* Workplace Address */}
       <TextInput
         placeholder="Workplace Address"
         value={workplaceAddress}
@@ -79,7 +83,6 @@ export default function HealthcareProviderRegistration2() {
         placeholderTextColor="#666"
       />
 
-      {/* Position */}
       <TextInput
         placeholder="Position"
         value={position}
@@ -88,18 +91,16 @@ export default function HealthcareProviderRegistration2() {
         placeholderTextColor="#666"
       />
 
-      {/* Continue Button */}
       <TouchableOpacity style={styles.button} onPress={handleContinue}>
         <Text style={styles.buttonText}>Continue</Text>
       </TouchableOpacity>
-  
-    {/* Decorative Dots */}
-          <View style={styles.decorativeDots}>
-            {Array.from({ length: 5 }).map((_, index) => (
-              <View key={index} style={styles.dot} />
-            ))}
-          </View>
-        </View>
+
+      <View style={styles.decorativeDots}>
+        {Array.from({ length: 5 }).map((_, index) => (
+          <View key={index} style={styles.dot} />
+        ))}
+      </View>
+    </View>
   );
 }
 
@@ -154,11 +155,10 @@ const styles = StyleSheet.create({
   },
   button: {
     width: '90%',
-    backgroundColor: '#2D4BC2', // Solid blue to match previous buttons
+    backgroundColor: '#2D4BC2',
     paddingVertical: 15,
     borderRadius: 20,
     alignItems: 'center',
-    
     marginTop: 10,
   },
   buttonText: {
@@ -167,7 +167,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 1,
   },
-  
   decorativeDots: {
     position: 'absolute',
     bottom: 30,

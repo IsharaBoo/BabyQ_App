@@ -1,7 +1,8 @@
-// app/firebaseConfig.ts
 import { initializeApp } from 'firebase/app';
-import { getAuth, Auth } from 'firebase/auth'; // Import Auth type
-import { getFirestore, Firestore } from 'firebase/firestore'; // Import Firestore type
+import { getAuth } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
+import { getStorage } from 'firebase/storage'; // Only import getStorage
+
 
 const firebaseConfig = {
   apiKey: "AIzaSyARUSxbutgwLzXUDvXf4qfqybFkgDRBdOo",
@@ -15,8 +16,9 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const auth: Auth = getAuth(app); // Explicitly type auth
-const firestore: Firestore = getFirestore(app); // Explicitly type firestore
+const auth = getAuth(app);
+const firestore = getFirestore(app);
+const storage = getStorage(app);
 
 // Export Firebase services
-export { auth, firestore };
+export { auth, firestore, storage };

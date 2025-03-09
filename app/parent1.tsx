@@ -26,9 +26,7 @@ const ParentRegistration1: React.FC = () => {
       setIsLoading(false);
       return;
     }
-    const handleBack = () => {
-      router.back(); // Navigate back to the previous screen
-    };
+
 
     if (!/^\d{10}$/.test(phoneNumber)) {
       Alert.alert('Error', 'Please enter a valid 10-digit phone number');
