@@ -1,61 +1,69 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { auth } from './firebase';
+import { verifyPasswordResetCode, confirmPasswordReset } from 'firebase/auth';
 
-export default function ResetPW(): JSX.Element {
+export default function ResetPW() {
   const router = useRouter();
-  const [confirmationCode, setConfirmationCode] = useState<string>('');
+  const params = useLocalSearchParams();
+  const actionCode = params.oobCode as string; // Extract reset code from URL
+  const [newPassword, setNewPassword] = useState('');
+  const [email, setEmail] = useState('');
 
-  const handleVerify = (): void => {
-    if (validateCode()) {
-      Alert.alert('Success', 'Password reset successful!');
-      router.push('/ResetPW2'); // Navigate to confirmation screen
+  useEffect(() => {
+    if (!actionCode) {
+      Alert.alert('Error', 'Invalid or missing reset link.');
+      router.push('/resetPassword');
     } else {
-      Alert.alert('Error', 'Invalid confirmation code.');
+      verifyCode();
+    }
+  }, [actionCode]);
+
+  const verifyCode = async () => {
+    try {
+      const userEmail = await verifyPasswordResetCode(auth, actionCode);
+      setEmail(userEmail); // Save verified email
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Invalid or expired reset link.');
+      router.push('/resetPassword');
     }
   };
 
-  const validateCode = (): boolean => {
-    return confirmationCode.length === 4; // Example validation
-  };
-
-  const handleBack = (): void => {
-    router.push('/resetPassword'); // Navigate back to reset password screen
+  // 🔹 Handle new password submission
+  const handleResetPassword = async () => {
+    if (newPassword.length < 6) {
+      Alert.alert('Error', 'Password must be at least 6 characters.');
+      return;
+    }
+    try {
+      await confirmPasswordReset(auth, actionCode, newPassword);
+      Alert.alert('Success', 'Password changed successfully.');
+      router.replace('/resetDone'); // Navigate to success page
+    } catch (error: any) {
+      Alert.alert('Error', error.message);
+    }
   };
 
   return (
     <View style={styles.container}>
-      {/* Back Button */}
-      <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-        <Ionicons name="arrow-back" size={24} color="#2D4BC2" />
-      </TouchableOpacity>
-
-      {/* Title & Description */}
-      <Text style={styles.title}>Reset password</Text>
+      <Text style={styles.title}>Reset Your Password</Text>
       <Text style={styles.description}>
-        Enter the confirmation code to reset your password.
+        Enter a new password for your account ({email}).
       </Text>
 
-      {/* Confirmation Code Input */}
+      {/* Password Input */}
       <TextInput
         style={styles.input}
-        placeholder="Confirmation code"
-        placeholderTextColor="#A9A9A9"
-        keyboardType="numeric"
-        autoCapitalize="none"
-        value={confirmationCode}
-        onChangeText={setConfirmationCode}
+        placeholder="Enter new password"
+        secureTextEntry
+        value={newPassword}
+        onChangeText={setNewPassword}
       />
 
-      {/* Verify Button */}
-      <TouchableOpacity style={styles.verifyButton} onPress={handleVerify}>
-        <Text style={styles.verifyButtonText}>Verify</Text>
-      </TouchableOpacity>
-
-      {/* Back Button */}
-      <TouchableOpacity style={styles.backButtonSecondary} onPress={handleBack}>
-        <Text style={styles.backButtonText}>Back</Text>
+      {/* Submit Button */}
+      <TouchableOpacity style={styles.resetButton} onPress={handleResetPassword}>
+        <Text style={styles.resetButtonText}>Confirm Reset</Text>
       </TouchableOpacity>
     </View>
   );
@@ -64,67 +72,41 @@ export default function ResetPW(): JSX.Element {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: '#fff',
-    paddingHorizontal: 20,
-    paddingTop: 40,
-  },
-  backButton: {
-    position: 'absolute',
-    top: 60,
-    left: 20,
-    zIndex: 1,
+    padding: 20,
   },
   title: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: 'bold',
     color: '#2D4BC2',
-    textAlign: 'left',
-    marginLeft: 45,
-    marginTop: 15,
+    marginBottom: 10,
   },
   description: {
     fontSize: 14,
     color: '#555',
-    marginTop: 20,
-    marginBottom: 30,
+    marginBottom: 20,
+    textAlign: 'center',
   },
   input: {
-    height: 50,
-    backgroundColor: '#E5E5E5',
+    width: '90%',
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#ccc',
     borderRadius: 8,
-    paddingHorizontal: 15,
-    fontSize: 16,
-    marginBottom: 40,
+    marginBottom: 15,
   },
-  verifyButton: {
-    width: '90%',
-    borderRadius: 20,
+  resetButton: {
     backgroundColor: '#2D4BC2',
-    paddingVertical: 15,
-    alignItems: 'center',
-    elevation: 5,
-    marginLeft: 20,
-  },
-  verifyButtonText: {
-    color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '700',
-    letterSpacing: 1,
-  },
-  backButtonSecondary: {
-    width: '90%',
-    borderRadius: 20,
-    marginTop: 20,
-    backgroundColor: '#A9B8E8',
     paddingVertical: 12,
-    alignItems: 'center',
-    marginLeft: 20,
+    paddingHorizontal: 40,
+    borderRadius: 8,
+    marginTop: 10,
   },
-  backButtonText: {
-    color: '#FFFFFF',
+  resetButtonText: {
+    color: '#fff',
     fontSize: 15,
-    fontWeight: '700',
-    letterSpacing: 1,
+    fontWeight: 'bold',
   },
 });
-

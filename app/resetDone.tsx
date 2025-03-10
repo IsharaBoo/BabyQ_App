@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
-import { useRouter } from 'expo-router'; // Import useRouter from expo-router
+import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView } from 'react-native';
+import { useRouter } from 'expo-router';
 
 export default function ResetDone() {
   const router = useRouter();
@@ -10,25 +10,24 @@ export default function ResetDone() {
   };
 
   return (
-    <View style={styles.container}>
-
+    <ScrollView contentContainerStyle={styles.container}>
       {/* Success Message */}
       <Text style={styles.title}>Password changed</Text>
 
       {/* Tick Image */}
-      <Image source={require('../assets/images/tick.png')} style={styles.tickImage} />
+      <Image source={require('../assets/images/tick.png')} style={styles.tickImage} resizeMode="contain" />
 
       {/* Back to Login Button */}
       <TouchableOpacity style={styles.loginButton} onPress={handleBackToLogin}>
         <Text style={styles.loginButtonText}>Back to login</Text>
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#fff',
@@ -45,7 +44,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#2D4BC2',
     marginBottom: 30,
-    marginTop: -100,
   },
   loginButton: {
     backgroundColor: '#2D4BC2',

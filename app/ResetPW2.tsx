@@ -1,41 +1,55 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { auth } from './firebase';
+import { confirmPasswordReset } from 'firebase/auth';
 
 export default function ResetPW2() {
   const router = useRouter();
+  const params = useLocalSearchParams();
+  const actionCode = params.actionCode as string;
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const handleChangePassword = () => {
-    // Add your password change logic here
-    if (newPassword !== confirmPassword) {
-      alert('Passwords do not match. Please try again.');
+  const handleChangePassword = async () => {
+    if (!newPassword || !confirmPassword) {
+      Alert.alert('Error', 'Please enter and confirm your new password.');
       return;
     }
 
-    // Simulate a successful password change
-    alert('Password changed successfully!');
-    router.push('/resetDone'); // Navigate to the Reset Done screen
+    if (newPassword !== confirmPassword) {
+      Alert.alert('Error', 'Passwords do not match. Please try again.');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      Alert.alert('Error', 'Password must be at least 6 characters.');
+      return;
+    }
+
+    try {
+      await confirmPasswordReset(auth, actionCode, newPassword);
+      Alert.alert('Success', 'Password changed successfully!');
+      router.push('/resetDone'); // Navigate to ResetDone screen
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Failed to reset password.');
+    }
   };
 
   return (
     <View style={styles.container}>
-      {/* Back Button */}
       <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
         <Ionicons name="arrow-back" size={24} color="black" />
       </TouchableOpacity>
 
-      {/* Title & Description */}
       <Text style={styles.title}>Change your password</Text>
       <Text style={styles.description}>
         Enter the new password to reset your password.
       </Text>
 
-      {/* New Password Input */}
       <View style={styles.inputContainer}>
         <TextInput
           style={styles.input}
@@ -46,11 +60,10 @@ export default function ResetPW2() {
           onChangeText={setNewPassword}
         />
         <TouchableOpacity onPress={() => setShowNewPassword(!showNewPassword)} style={styles.eyeIcon}>
-          <Ionicons name={showNewPassword ? "eye-off" : "eye"} size={24} color="black" />
+          <Ionicons name={showNewPassword ? 'eye-off' : 'eye'} size={24} color="black" />
         </TouchableOpacity>
       </View>
 
-      {/* Confirm Password Input */}
       <View style={styles.inputContainer}>
         <TextInput
           style={styles.input}
@@ -61,16 +74,13 @@ export default function ResetPW2() {
           onChangeText={setConfirmPassword}
         />
         <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)} style={styles.eyeIcon}>
-          <Ionicons name={showConfirmPassword ? "eye-off" : "eye"} size={24} color="black" />
+          <Ionicons name={showConfirmPassword ? 'eye-off' : 'eye'} size={24} color="black" />
         </TouchableOpacity>
       </View>
 
-      {/* Change Button */}
       <TouchableOpacity style={styles.changeButton} onPress={handleChangePassword}>
         <Text style={styles.changeButtonText}>Change</Text>
       </TouchableOpacity>
-
-    
     </View>
   );
 }
@@ -121,7 +131,7 @@ const styles = StyleSheet.create({
   changeButton: {
     width: '90%',
     borderRadius: 20,
-    backgroundColor: '#2D4BC2', // Solid blue color
+    backgroundColor: '#2D4BC2',
     paddingVertical: 15,
     alignItems: 'center',
     elevation: 5,
@@ -133,5 +143,4 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: 'bold',
   },
-  
 });

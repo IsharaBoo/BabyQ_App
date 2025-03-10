@@ -6,7 +6,8 @@ import { RadioButton } from 'react-native-paper';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc, setLogLevel } from 'firebase/firestore';
 import { auth, firestore } from './firebase';
-setLogLevel('debug'); // Add this at the top of your file
+
+setLogLevel('debug');
 
 interface DOB {
   month: string;
@@ -41,9 +42,10 @@ export default function ParentRegistration2() {
 
   const handleSignUp = async () => {
     setIsLoading(true);
+    console.log('Starting signup...');
 
     if (!childName || !birthCertNumber || !childDob.day || !childDob.month || !childDob.year || !gender || !password) {
-      Alert.alert('Error', 'Please fill in all required fields (child name, birth certificate, DOB, gender, and password)');
+      Alert.alert('Error', 'Please fill in all required fields');
       setIsLoading(false);
       return;
     }
@@ -62,10 +64,12 @@ export default function ParentRegistration2() {
     }
 
     try {
+      console.log('Creating user with email:', parentData.email);
       const userCredential = await createUserWithEmailAndPassword(auth, parentData.email, password);
       const user = userCredential.user;
+      console.log('User created with UID:', user.uid);
 
-      await setDoc(doc(firestore, 'users', user.uid), {
+      const userData = {
         role: 'parent',
         fullName: parentData.fullName,
         nicNumber: parentData.nicNumber,
@@ -87,21 +91,29 @@ export default function ParentRegistration2() {
           },
         ],
         createdAt: new Date().toISOString(),
-      });
+      };
+      console.log('Writing to Firestore:', JSON.stringify(userData));
+      await setDoc(doc(firestore, 'users', user.uid), userData);
+      console.log('Firestore write succeeded');
 
-      Alert.alert('Success', 'Parent account created successfully!');
-      router.push('/home'); // Auto-navigate to home since user is logged in
+      Alert.alert(
+        'Success',
+        'Parent account created successfully!',
+        [{ text: 'OK', onPress: () => router.replace('/home') }],
+        { cancelable: false }
+      );
     } catch (error: any) {
-      let errorMessage = 'An unknown error occurred';
+      console.error('Signup error:', error);
+      console.error('Error code:', error.code);
+      console.error('Error message:', error.message);
+      let errorMessage = error.message || 'An unknown error occurred';
       if (error.code === 'auth/email-already-in-use') {
         errorMessage = 'This email is already in use.';
       } else if (error.code === 'auth/invalid-email') {
         errorMessage = 'Please enter a valid email address.';
-      
-      } else {
-        errorMessage = error.message;
+      } else if (error.code === 'permission-denied') {
+        errorMessage = 'Permission denied. Check Firestore rules.';
       }
-      console.error('Registration error:', error);
       Alert.alert('Registration Failed', errorMessage);
     } finally {
       setIsLoading(false);
@@ -237,7 +249,7 @@ export default function ParentRegistration2() {
 
 const styles = StyleSheet.create({
   container: {
-    flexGrow: 1, // Allow content to grow and take up available space
+    flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#fff',
@@ -249,6 +261,7 @@ const styles = StyleSheet.create({
     color: '#2D4BC2',
     textAlign: 'left',
     marginBottom: 20,
+    marginTop: 20,
   },
   subtitle: {
     fontSize: 16,

@@ -55,6 +55,7 @@ export default function HealthcareProviderRegistration1() {
 
   return (
     <View style={styles.container}>
+      {/* Back Button */}
       <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
         <Ionicons name="arrow-back" size={24} color="#2D4BC2" />
       </TouchableOpacity>

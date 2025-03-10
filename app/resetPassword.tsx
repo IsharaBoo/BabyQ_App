@@ -1,18 +1,15 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation, NavigationProp } from '@react-navigation/native';
-
-// Define the navigation types
-type RootStackParamList = {
-  ResetPW: undefined;
-};
+import { useRouter } from 'expo-router';
+import { auth } from './firebase';
+import { sendPasswordResetEmail } from 'firebase/auth';
 
 export default function ResetPasswordScreen() {
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-  const [email, setEmail] = useState<string>(''); // Explicit type annotation
+  const router = useRouter();
+  const [email, setEmail] = useState<string>('');
 
-  const handleReset = (): void => {
+  const handleReset = async () => {
     if (!email) {
       Alert.alert('Error', 'Please enter your email address');
       return;
@@ -23,12 +20,23 @@ export default function ResetPasswordScreen() {
       return;
     }
 
-    navigation.navigate('ResetPW');
+    try {
+      console.log('Sending password reset email to:', email);
+      await sendPasswordResetEmail(auth, email, {
+        url: 'https://babyq-frontauth.web.app/reset', // Use your allowlisted domain
+        handleCodeInApp: true,
+      });
+      Alert.alert('Success', 'A password reset link has been sent to your email.');
+      router.push('/login');
+    } catch (error: any) {
+      console.error('Password reset error:', error);
+      Alert.alert('Error', error.message || 'Failed to send reset email.');
+    }
   };
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+      <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
         <Ionicons name="arrow-back" size={28} color="#2D4BC2" />
       </TouchableOpacity>
 
@@ -51,7 +59,7 @@ export default function ResetPasswordScreen() {
         <Text style={styles.resetButtonText}>Reset</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.backButtonSecondary} onPress={() => navigation.goBack()}>
+      <TouchableOpacity style={styles.backButtonSecondary} onPress={() => router.back()}>
         <Text style={styles.backButtonText}>Back</Text>
       </TouchableOpacity>
     </View>
@@ -124,4 +132,3 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
 });
-

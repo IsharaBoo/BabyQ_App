@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Reset Password</title>
+  <meta http-equiv="refresh" content="0;url=myapp://reset" />
+</head>
+<body>
+  <p>Redirecting to BabyQ app...</p>
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const oobCode = urlParams.get('oobCode');
+    if (oobCode) {
+      window.location.href = `myapp://reset?oobCode=${oobCode}`;
+    } else {
+      document.body.innerHTML = '<p>Error: No reset code found.</p>';
+    }
+  </script>
+</body>
+</html>

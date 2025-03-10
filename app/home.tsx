@@ -25,7 +25,7 @@ const { width } = Dimensions.get('window');
 export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [greeting, setGreeting] = useState('Good morning');
-  const [user, setUser] = useState<any>(null); // Replace with proper interface later
+  const [user, setUser] = useState<any>(null); 
   const router = useRouter();
   const scrollY = new Animated.Value(0);
 
@@ -172,10 +172,12 @@ export default function HomePage() {
         >
           <FontAwesome name="user-circle" size={28} color="#2D4BC2" />
           <View>
-            <Text style={styles.greeting}>{greeting}, {user.name.split(' ')[0]}</Text>
-            <Text style={styles.subGreeting}>How are you feeling today?</Text>
-          </View>
-        </Animated.View>
+        <Text style={styles.greeting}>
+          {greeting}, {user.name.split(' ')[0]}!
+        </Text>
+        <Text style={styles.subGreeting}>How are you feeling today?</Text>
+      </View>
+    </Animated.View>
 
         <Animated.View
           style={[
