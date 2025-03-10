@@ -2,6 +2,7 @@ import {
   View, Text, StyleSheet, SafeAreaView, FlatList, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard 
 } from 'react-native';
 import React, { useState } from 'react';
+import { useNavigation } from '@react-navigation/native'; // Correct import for navigation
 
 const CommunityPage = () => {
   const [posts, setPosts] = useState([
@@ -19,11 +20,12 @@ const CommunityPage = () => {
     { id: '18', name: 'Benjamin', content: 'I’m looking for advice on baby milestones. How can I help my child hit them on time?', likes: 0, comments: [] },
     { id: '19', name: 'Charlotte', content: 'What are some safe and effective ways to introduce solid foods to a 6-month-old?', likes: 0, comments: [] },
     { id: '20', name: 'Amelia', content: 'Has anyone tried baby probiotics? Are they safe and effective for digestive health?', likes: 0, comments: [] }
-    
   ]);
 
   const [commentText, setCommentText] = useState('');
   const [activePost, setActivePost] = useState(null); 
+
+  const navigation = useNavigation(); // Set up navigation
 
   // Handle likes
   const handleLike = (id) => {
@@ -102,6 +104,11 @@ const CommunityPage = () => {
     </View>
   );
 
+  const navigateToNewPost = () => {
+    // Navigate to the NewPost screen when the button is pressed
+    navigation.navigate('NewPost');
+  };
+
   return (
     <TouchableWithoutFeedback onPress={dismissKeyboard}>
       <SafeAreaView style={styles.container}>
@@ -109,17 +116,21 @@ const CommunityPage = () => {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
           style={styles.flexContainer}
         >
+          {/* Input Box */}
           <View style={styles.inputBox}>
-            <Text style={styles.text}>What's on your mind?  💭</Text>
+            <Text style={styles.text}>What's on your mind? 💭</Text>
+            <TouchableOpacity onPress={navigateToNewPost} style={styles.newPostButton}>
+              <Text style={{ color: 'white' }}>Create New Post</Text>
+            </TouchableOpacity>
           </View>
 
-          {/* SCROLLABLE POSTS */}
+          {/* Post Feed */}
           <FlatList
             data={posts}
             keyExtractor={(item) => item.id}
             renderItem={renderPost}
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: 20 }} // Ensure bottom space for comments
+            contentContainerStyle={{ paddingBottom: 20 }} // Ensures space for the comments section
           />
         </KeyboardAvoidingView>
       </SafeAreaView>
@@ -147,7 +158,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 15,
     marginBottom: 20,
-    
   },
   text: {
     fontSize: 17,
@@ -181,18 +191,14 @@ const styles = StyleSheet.create({
   },
   likeButton: {
     padding: 5,
-    //backgroundColor: '#2D4BC2',
     borderRadius: 5,
     paddingLeft:10,
-    
   },
   commentButton: {
     paddingTop:5,
     paddingBottom:5,
     paddingLeft:5,
-   // backgroundColor: '#2D4BC2',
     borderRadius: 5,
-    
   },
   commentSection: {
     marginTop: 10,
@@ -228,4 +234,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CommunityPage;  
+export default CommunityPage;
