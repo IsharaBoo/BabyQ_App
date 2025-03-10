@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, StyleSheet, Alert } from 'react-native';
 import { FAB } from 'react-native-paper';
 import axios from 'axios';
-// import AddChannelingHistoryPage from './AddChannelingHistoryPage';
+import AddChannelingHistoryPage from './AddChannelingHistoryPage';
 
 // Define the type for each entry in channeling history
 type ChannelHistoryEntry = {
@@ -77,10 +77,10 @@ const ChannelHistory = () => {
       </View>
 
       {/* Floating Action Button for adding channeling history */}
-      {/* <FAB style={styles.fab} icon="plus" onPress={handleAddChannelingPage} /> */}
+       <FAB style={styles.fab} icon="plus" onPress={handleAddChannelingPage} /> 
 
       {/* Show AddChannelingHistoryPage if showAddPage is true */}
-      {/* {showAddPage && <AddChannelingHistoryPage onSubmit={handleAddChannelingHistory} />} */}
+      {showAddPage && <AddChannelingHistoryPage onSubmit={handleAddChannelingHistory} />} 
     </ScrollView>
   );
 };

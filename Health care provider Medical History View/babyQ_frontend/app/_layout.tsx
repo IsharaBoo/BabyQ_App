@@ -5,6 +5,7 @@ export default function RootLayout() {
     <Stack>
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="ChannelHistory" options={{ headerShown: false }} />
+      <Stack.Screen name="AddChannelingHistory" options={{ headerShown: false }} />
       {/* <Stack.Screen name="landingPage1" options={{ headerShown: false }} />
       <Stack.Screen name="login" options={{ headerShown: false }} />
       <Stack.Screen name="registerSelect" options={{ headerShown: false }} />
