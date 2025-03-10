@@ -32,9 +32,9 @@ const MedicalHistoryPage = () => {
   const goToVaccinationHistory = () => {
     router.push('/VaccinationHistory');
   };
-  // const goToGrowthDataPage = () => {
-  //   router.push('/GrowthDataPage');
-  // };
+  const goToGrowthDataPage = () => {
+    router.push('/GrowthDataPage');
+  };
   
 
   return (
@@ -71,13 +71,13 @@ const MedicalHistoryPage = () => {
       >
         Vaccination
       </Button>
-      {/* <Button 
+      <Button 
         mode="contained" 
         onPress={goToGrowthDataPage}
         style={styles.button}
       >
         Growth Data
-      </Button>  */}
+      </Button> 
 
       
     
