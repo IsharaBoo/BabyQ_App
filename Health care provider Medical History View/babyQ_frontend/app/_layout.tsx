@@ -10,6 +10,8 @@ export default function RootLayout() {
       <Stack.Screen name="AddAllergiesHistory" options={{ headerShown: false }} />
       <Stack.Screen name="VaccinationHistory" options={{ headerShown: false }} />
       <Stack.Screen name="AddVaccinationHistory" options={{ headerShown: false }} />
+      <Stack.Screen name="GrowthDataPage" options={{ headerShown: false }} />
+      <Stack.Screen name="AddGrowthDataPage" options={{ headerShown: false }} />
       {/* <Stack.Screen name="landingPage1" options={{ headerShown: false }} />
       <Stack.Screen name="login" options={{ headerShown: false }} />
       <Stack.Screen name="registerSelect" options={{ headerShown: false }} />

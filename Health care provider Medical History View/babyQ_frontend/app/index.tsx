@@ -18,9 +18,9 @@ const MedicalHistoryPage = () => {
   };
  
 
-  // const goToViewReports = () => {
-  //   WebBrowser.openBrowserAsync('http://localhost:5173/'); // This will open in the browser
-  // };
+  const goToViewReports = () => {
+    WebBrowser.openBrowserAsync('http://localhost:5173/'); // This will open in the browser
+  };
 
 
 
@@ -32,9 +32,9 @@ const MedicalHistoryPage = () => {
   const goToVaccinationHistory = () => {
     router.push('/VaccinationHistory');
   };
-  // const goToGrowthDataPage = () => {
-  //   router.push('/GrowthDataPage');
-  // };
+  const goToGrowthDataPage = () => {
+    router.push('/GrowthDataPage');
+  };
   
 
   return (
@@ -57,13 +57,13 @@ const MedicalHistoryPage = () => {
       >
        Allergies
       </Button>
-      {/* <Button 
+      <Button 
         mode="contained" 
         onPress={goToViewReports}
         style={styles.button}
       >
         Reports
-      </Button> */}
+      </Button>
       <Button 
         mode="contained" 
         onPress={goToVaccinationHistory}
@@ -71,13 +71,13 @@ const MedicalHistoryPage = () => {
       >
         Vaccination
       </Button>
-      {/* <Button 
+      <Button 
         mode="contained" 
         onPress={goToGrowthDataPage}
         style={styles.button}
       >
         Growth Data
-      </Button> */}
+      </Button>
 
       
     
