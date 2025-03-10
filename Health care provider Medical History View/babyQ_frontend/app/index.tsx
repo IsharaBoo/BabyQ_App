@@ -13,9 +13,9 @@ const MedicalHistoryPage = () => {
   const goToChannelingHistory = () => {
     router.push('/ChannelHistory');
   };
-  // const goToAllergiesHistory = () => {
-  //   router.push('/AllergiesHistory');
-  // };
+  const goToAllergiesHistory = () => {
+    router.push('/AllergiesHistory');
+  };
  
 
   // const goToViewReports = () => {
@@ -50,14 +50,14 @@ const MedicalHistoryPage = () => {
       >
        Doctor Channelings
       </Button>
-      {/* <Button 
+      <Button 
         mode="contained" 
         onPress={goToAllergiesHistory}
         style={styles.button}
       >
        Allergies
       </Button>
-      <Button 
+      {/* <Button 
         mode="contained" 
         onPress={goToViewReports}
         style={styles.button}
