@@ -118,9 +118,9 @@ const CommunityPage = () => {
         >
           {/* Input Box */}
           <View style={styles.inputBox}>
-            <Text style={styles.text}>What's on your mind? 💭</Text>
+            
             <TouchableOpacity onPress={navigateToNewPost} style={styles.newPostButton}>
-              <Text style={{ color: 'white' }}>Create New Post</Text>
+              <Text style={{ color: 'white' }}>What's on your mind? 💭</Text>
             </TouchableOpacity>
           </View>
 
