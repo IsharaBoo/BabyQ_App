@@ -1,14 +1,14 @@
-// app/HealthcareProviderRegistration2.tsx
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function HealthcareProviderRegistration2() {
   const router = useRouter();
   const params = useLocalSearchParams();
 
-  // Retrieve data from HealthcareProviderRegistration1
   const providerData = {
     firstName: params.firstName as string,
     lastName: params.lastName as string,
@@ -22,10 +22,30 @@ export default function HealthcareProviderRegistration2() {
   const [affiliatedHospital, setAffiliatedHospital] = useState<string>('');
   const [workplaceAddress, setWorkplaceAddress] = useState<string>('');
   const [position, setPosition] = useState<string>('');
+  const [photoUri, setPhotoUri] = useState<string | null>(null); // Store photo URI
+
+  const pickImage = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permissionResult.granted) {
+      Alert.alert('Error', 'Permission to access photos is required!');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1], // Square aspect ratio
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setPhotoUri(result.assets[0].uri);
+    }
+  };
 
   const validateForm = () => {
-    if (!medicalLicenseNumber || !affiliatedHospital || !workplaceAddress || !position) {
-      Alert.alert('Error', 'Please fill in all fields');
+    if (!medicalLicenseNumber || !affiliatedHospital || !workplaceAddress || !position || !photoUri) {
+      Alert.alert('Error', 'Please fill in all fields and upload a photo');
       return false;
     }
     return true;
@@ -34,9 +54,8 @@ export default function HealthcareProviderRegistration2() {
   const handleContinue = () => {
     if (!validateForm()) return;
 
-    // Pass all collected data to HealthcareProviderRegistration3 using query params
     router.push(
-      `/healthcareProvider3?firstName=${encodeURIComponent(providerData.firstName)}&lastName=${encodeURIComponent(providerData.lastName)}&nicNumber=${encodeURIComponent(providerData.nicNumber)}&email=${encodeURIComponent(providerData.email)}&password=${encodeURIComponent(providerData.password)}&phoneNumber=${encodeURIComponent(providerData.phoneNumber)}&medicalLicenseNumber=${encodeURIComponent(medicalLicenseNumber)}&affiliatedHospital=${encodeURIComponent(affiliatedHospital)}&workplaceAddress=${encodeURIComponent(workplaceAddress)}&position=${encodeURIComponent(position)}`
+      `/healthcareProvider3?firstName=${encodeURIComponent(providerData.firstName)}&lastName=${encodeURIComponent(providerData.lastName)}&nicNumber=${encodeURIComponent(providerData.nicNumber)}&email=${encodeURIComponent(providerData.email)}&password=${encodeURIComponent(providerData.password)}&phoneNumber=${encodeURIComponent(providerData.phoneNumber)}&medicalLicenseNumber=${encodeURIComponent(medicalLicenseNumber)}&affiliatedHospital=${encodeURIComponent(affiliatedHospital)}&workplaceAddress=${encodeURIComponent(workplaceAddress)}&position=${encodeURIComponent(position)}&photoUri=${encodeURIComponent(photoUri || '')}`
     );
   };
 
@@ -66,7 +85,6 @@ export default function HealthcareProviderRegistration2() {
         style={styles.input}
         placeholderTextColor="#666"
       />
-
       <TextInput
         placeholder="Affiliated hospital/clinic"
         value={affiliatedHospital}
@@ -74,7 +92,6 @@ export default function HealthcareProviderRegistration2() {
         style={styles.input}
         placeholderTextColor="#666"
       />
-
       <TextInput
         placeholder="Workplace Address"
         value={workplaceAddress}
@@ -82,7 +99,6 @@ export default function HealthcareProviderRegistration2() {
         style={styles.input}
         placeholderTextColor="#666"
       />
-
       <TextInput
         placeholder="Position"
         value={position}
@@ -90,6 +106,24 @@ export default function HealthcareProviderRegistration2() {
         style={styles.input}
         placeholderTextColor="#666"
       />
+
+      {/* Photo Upload Section */}
+      <TouchableOpacity style={styles.uploadButtonContainer} onPress={pickImage} activeOpacity={0.8}>
+        <LinearGradient
+          colors={['#A9B8E8', '#2D4BC2']} // Gradient from light blue to primary blue
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.uploadButtonGradient}
+        >
+          <Ionicons name="camera" size={24} color="#FFFFFF" style={styles.uploadIcon} />
+          <Text style={styles.uploadButtonText}>
+            {photoUri ? 'Change The Photo' : 'Upload a Professional Photo'}
+          </Text>
+        </LinearGradient>
+      </TouchableOpacity>
+      {photoUri && (
+        <Image source={{ uri: photoUri }} style={styles.photoPreview} />
+      )}
 
       <TouchableOpacity style={styles.button} onPress={handleContinue}>
         <Text style={styles.buttonText}>Continue</Text>
@@ -124,6 +158,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1.5,
     textAlign: 'center',
     marginBottom: 20,
+    marginTop: -50,
   },
   progressContainer: {
     flexDirection: 'row',
@@ -153,13 +188,46 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     fontSize: 16,
   },
+  uploadButtonContainer: {
+    width: '100%',
+    marginTop: 15,
+    marginBottom: 15,
+    borderRadius: 10,
+    overflow: 'hidden', // Ensures gradient respects border radius
+    elevation: 5, // Shadow for Android
+    shadowColor: '#000', // Shadow for iOS
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+  },
+  uploadButtonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 15,
+  },
+  uploadIcon: {
+    marginRight: 10,
+  },
+  uploadButtonText: {
+    color: '#FFFFFF', // White text for contrast on gradient
+    fontSize: 18,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+  },
+  photoPreview: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    marginBottom: 15,
+  },
   button: {
     width: '90%',
     backgroundColor: '#2D4BC2',
     paddingVertical: 15,
     borderRadius: 20,
     alignItems: 'center',
-    marginTop: 10,
+    marginTop: 20,
   },
   buttonText: {
     color: '#FFFFFF',
