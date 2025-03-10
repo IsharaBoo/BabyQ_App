@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, StyleSheet, Alert } from 'react-native';
 import { FAB } from 'react-native-paper';
 import axios from 'axios';
-// import AddAllergyHistoryPage from './AddAllergyHistoryPage';
+import AddAllergyHistoryPage from './AddAllergyHistoryPage';
 
 type AllergyHistoryEntry = {
   allergyName: string;
@@ -66,8 +66,8 @@ const AllergiesHistory = () => {
       />
       
       {/* Show AddAllergyHistoryPage if showAddPage is true */}
-{/*       
-      {showAddPage && <AddAllergyHistoryPage onSubmit={handleAddAllergyHistory} />} */}
+      
+      {showAddPage && <AddAllergyHistoryPage onSubmit={handleAddAllergyHistory} />}
     </ScrollView>
   );
 };
