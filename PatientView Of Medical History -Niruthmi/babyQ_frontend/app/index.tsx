@@ -18,9 +18,9 @@ const MedicalHistoryPage = () => {
   };
  
 
-  // const goToViewReports = () => {
-  //   WebBrowser.openBrowserAsync('http://localhost:5173/'); // This will open in the browser
-  // };
+  const goToViewReports = () => {
+    WebBrowser.openBrowserAsync('http://localhost:5173/'); // This will open in the browser
+  };
 
 
 
@@ -57,13 +57,13 @@ const MedicalHistoryPage = () => {
       >
        Allergies
       </Button>
-      {/* <Button 
+      <Button 
         mode="contained" 
         onPress={goToViewReports}
         style={styles.button}
       >
         Reports
-      </Button> */}
+      </Button>
       <Button 
         mode="contained" 
         onPress={goToVaccinationHistory}
