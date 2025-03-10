@@ -29,9 +29,9 @@ const MedicalHistoryPage = () => {
 
 
 
-  // const goToVaccinationHistory = () => {
-  //   router.push('/VaccinationHistory');
-  // };
+  const goToVaccinationHistory = () => {
+    router.push('/VaccinationHistory');
+  };
   // const goToGrowthDataPage = () => {
   //   router.push('/GrowthDataPage');
   // };
@@ -64,13 +64,13 @@ const MedicalHistoryPage = () => {
       >
         Reports
       </Button> */}
-      {/* <Button 
+      <Button 
         mode="contained" 
         onPress={goToVaccinationHistory}
         style={styles.button}
       >
         Vaccination
-      </Button> */}
+      </Button>
       {/* <Button 
         mode="contained" 
         onPress={goToGrowthDataPage}
