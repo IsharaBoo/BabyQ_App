@@ -67,6 +67,9 @@ const CommunityPage = () => {
     <View style={styles.postContainer}>
       <Text style={styles.postOwner}>{item.name}</Text>
       <Text style={styles.postContent}>{item.content}</Text>
+      <Text style={{ paddingTop: 36, fontSize: 16, color: 'black' , paddingLeft:280}}>
+  {item.comments.length}
+</Text>
       <View style={styles.actions}>
         <TouchableOpacity onPress={() => handleLike(item.id)} style={styles.likeButton}>
           <Text style={{color:'black', paddingBottom:5}}>{item.likes} </Text>
