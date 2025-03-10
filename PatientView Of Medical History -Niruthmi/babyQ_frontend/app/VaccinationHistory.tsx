@@ -105,13 +105,21 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   searchInput: {
-    height: 50,
-    borderColor: '#ccc',
+    // height: 50,
+    // borderColor: '#ccc',
+    // borderWidth: 1,
+    // marginBottom: 20,
+    // paddingLeft: 10,
+    // fontSize: 16,
+    // borderRadius: 5,
+
+
+    height: 40,
     borderWidth: 1,
-    marginBottom: 20,
-    paddingLeft: 10,
-    fontSize: 16,
-    borderRadius: 5,
+    borderColor: '#ccc',
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    marginBottom: 15,
   },
   historyContainer: {
     marginBottom: 20,
