@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, StyleSheet, TextInput } from 'react-native';
 import { FAB } from 'react-native-paper';
 import axios from 'axios';
-// import AddVaccinationHistoryPage from './AddVaccinationHistory';
+import AddVaccinationHistoryPage from './AddVaccinationHistory';
 
 // Define the type for each entry in vaccination history
 type VaccinationHistoryEntry = {
@@ -88,8 +88,8 @@ const VaccinationHistory = () => {
       <FAB style={styles.fab} icon="plus" onPress={handleAddVaccinationPage} />
 
       {/* Show AddVaccinationHistoryPage if showAddPage is true */}
-{/*       
-      {showAddPage && <AddVaccinationHistoryPage onSubmit={handleAddVaccinationHistory} />} */}
+      
+      {showAddPage && <AddVaccinationHistoryPage onSubmit={handleAddVaccinationHistory} />}
     </ScrollView>
   );
 };
