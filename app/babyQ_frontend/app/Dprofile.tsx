@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
     height: 40,
     borderColor: 'gray',
     borderWidth: 2,
-    marginBottom: 10,
+    marginBottom: 11,
     paddingHorizontal: 10,
   },
 });
