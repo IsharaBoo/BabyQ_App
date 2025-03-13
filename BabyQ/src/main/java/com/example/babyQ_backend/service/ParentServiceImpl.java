@@ -21,4 +21,29 @@ public class ParentServiceImpl implements ParentService {
     public List<Parent> getAllParents() {
         return parentRepository.findAll(); // Retrieve all parents from the database
     }
+
+    @Override
+    public void deleteParent(Long id) {
+        if (!parentRepository.existsById(id)) {
+            throw new IllegalArgumentException("Parent with ID " + id + " not found");
+        }
+        parentRepository.deleteById(id);
+    }
+
+    @Override
+    public Parent updateParent(Parent parentDetails) {
+        Long id = parentDetails.getId(); // Use the ID from the Parent object
+        return parentRepository.findById(id)
+                .map(existingParent -> {
+                    existingParent.setFullName(parentDetails.getFullName());
+                    existingParent.setNicNumber(parentDetails.getNicNumber());
+                    existingParent.setDateOfBirth(parentDetails.getDateOfBirth());
+                    existingParent.setAddress(parentDetails.getAddress());
+                    existingParent.setPhoneNumber(parentDetails.getPhoneNumber());
+                    existingParent.setEmail(parentDetails.getEmail());
+                    existingParent.setPassword(parentDetails.getPassword());
+                    return parentRepository.save(existingParent); // Save updates
+                })
+                .orElseThrow(() -> new IllegalArgumentException("Parent with ID " + id + " not found"));
+    }
 }

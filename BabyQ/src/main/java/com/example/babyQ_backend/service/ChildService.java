@@ -8,4 +8,6 @@ public interface ChildService {
     Child registerChild(Child child);
     Child saveChild(Child child);
     List<Child> getAllChildren();
+    Child updateChild(Long id, Child childDetails) throws IllegalArgumentException;
+    void deleteChild(Long id) throws IllegalArgumentException;
 }

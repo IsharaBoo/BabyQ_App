@@ -18,6 +18,7 @@ public class ChildDTO {
     private double weight;
     private double height;
     private String additionalDetails;
+    private Long parentId;
 
     // Getters and Setters
     public String getName() { return name; }
@@ -49,4 +50,24 @@ public class ChildDTO {
 
     public String getAdditionalDetails() { return additionalDetails; }
     public void setAdditionalDetails(String additionalDetails) { this.additionalDetails = additionalDetails; }
+
+    public Long getParentId() { return parentId; }
+    public void setParentId(Long parentId) { this.parentId = parentId; }
+
+    @Override
+    public String toString() {
+        return "ChildDTO{" +
+                "name='" + name + '\'' +
+                ", birthCNo='" + birthCNo + '\'' +
+                ", dob=" + dob +
+                ", gender='" + gender + '\'' +
+                ", bloodGroup='" + bloodGroup + '\'' +
+                ", allergies='" + allergies + '\'' +
+                ", age=" + age +
+                ", weight=" + weight +
+                ", height=" + height +
+                ", additionalDetails='" + additionalDetails + '\'' +
+                ", parentId=" + parentId +
+                '}';
+    }
 }
