@@ -14,6 +14,7 @@ export default function ResetPW2() {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  // validations 
   const handleChangePassword = async () => {
     if (!newPassword || !confirmPassword) {
       Alert.alert('Error', 'Please enter and confirm your new password.');
