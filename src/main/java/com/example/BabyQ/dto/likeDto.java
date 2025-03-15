@@ -2,19 +2,14 @@ package com.example.BabyQ.dto;
 
 import lombok.*;
 
-import java.time.LocalDateTime;
-
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 
-public class postDto {
+public class likeDto {
+    private Long likeId;
     private Long postId;
     private Long userId;
-    private String content;
-    private LocalDateTime date;
-
-
 }

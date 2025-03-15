@@ -10,11 +10,10 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 
-public class postDto {
+public class commentDto {
+    private Long comId;
     private Long postId;
     private Long userId;
     private String content;
     private LocalDateTime date;
-
-
 }
