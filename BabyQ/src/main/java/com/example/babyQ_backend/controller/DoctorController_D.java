@@ -58,7 +58,7 @@ public class DoctorController_D {
     }
     @GetMapping("/search")
     public ResponseEntity<List<Doctor>> searchDoctors(@RequestParam("query") String query) {
-        System.out.println("Searching for: " + query); // Debug log
+        System.out.println("Searching for..: " + query); // Debug log
         List<Doctor> results = doctorService.searchDoctors(query);
         return ResponseEntity.ok(results);
     }
