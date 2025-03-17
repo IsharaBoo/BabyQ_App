@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Animated, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Animated, Alert, ActivityIndicator, Platform } from 'react-native';
 import Checkbox from 'expo-checkbox';
 import { FontAwesome, Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -207,7 +207,7 @@ const LoginPage: React.FC = () => {
         <Checkbox
           value={rememberPassword}
           onValueChange={setRememberPassword}
-          color="#2D4BC2"
+          color={Platform.OS === 'ios' ? '#2D4BC2' : undefined}
         />
         <Text style={styles.rememberMeText}>Remember me</Text>
       </View>
