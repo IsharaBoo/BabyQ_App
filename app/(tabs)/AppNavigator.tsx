@@ -11,10 +11,11 @@ const AppNavigator = () => {
     <NavigationContainer>
       <Stack.Navigator initialRouteName="CommunityPage">
         <Stack.Screen name="CommunityPage" component={CommunityPage} />
-        <Stack.Screen name="NewPost" component={NewPost} />
+        <Stack.Screen name="NewPost" component={NewPost} options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>
   );
 };
+
 
 export default AppNavigator;
