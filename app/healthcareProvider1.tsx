@@ -1,8 +1,10 @@
-// app/HealthcareProviderRegistration1.tsx
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import axios from 'axios';
+
+const backendUrl = 'http://192.168.1.5:8082';
 
 export default function HealthcareProviderRegistration1() {
   const router = useRouter();
@@ -12,6 +14,7 @@ export default function HealthcareProviderRegistration1() {
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [phoneNumber, setPhoneNumber] = useState<string>('');
+  const [isChecking, setIsChecking] = useState(false);
 
   const validateForm = () => {
     if (!firstName || !lastName || !nicNumber || !email || !password || !phoneNumber) {
@@ -33,29 +36,45 @@ export default function HealthcareProviderRegistration1() {
     return true;
   };
 
-  const handleContinue = () => {
-    if (validateForm()) {
-      router.push({
-        pathname: '/healthcareProvider2',
-        params: {
-          firstName,
-          lastName,
-          nicNumber,
-          email,
-          password,
-          phoneNumber,
-        },
-      });
+  // Optional: Check if email is already registered
+  const checkEmailAvailability = async () => {
+    try {
+      setIsChecking(true);
+      const response = await axios.get(`${backendUrl}/api/doctors`);
+      const doctors = response.data;
+      const emailExists = doctors.some((doctor: any) => doctor.professionalEmail === email);
+      if (emailExists) {
+        Alert.alert('Error', 'This email is already registered');
+        return false;
+      }
+      return true;
+    } catch (error) {
+      console.error('Error checking email:', error);
+      Alert.alert('Warning', 'Could not verify email availability. Proceeding anyway.');
+      return true; // Proceed if check fails (optional)
+    } finally {
+      setIsChecking(false);
     }
   };
 
+  const handleContinue = async () => {
+    if (!validateForm() || isChecking) return;
+  
+    const emailAvailable = await checkEmailAvailability();
+    if (!emailAvailable) return;
+  
+    router.push({
+      pathname: '/healthcareProvider2',
+      params: { firstName, lastName, nicNumber, email, password, phoneNumber },
+    });
+  };
+  
   const handleGoBack = () => {
     router.back();
   };
 
   return (
     <View style={styles.container}>
-      {/* Back Button */}
       <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
         <Ionicons name="arrow-back" size={24} color="#2D4BC2" />
       </TouchableOpacity>
@@ -121,8 +140,10 @@ export default function HealthcareProviderRegistration1() {
         keyboardType="phone-pad"
       />
 
-      <TouchableOpacity style={styles.button} onPress={handleContinue}>
-        <Text style={styles.buttonText}>Continue</Text>
+      {isChecking && <ActivityIndicator size="small" color="#2D4BC2" style={{ marginVertical: 10 }} />}
+      
+      <TouchableOpacity style={styles.button} onPress={handleContinue} disabled={isChecking}>
+        <Text style={styles.buttonText}>{isChecking ? 'Checking...' : 'Continue'}</Text>
       </TouchableOpacity>
 
       <View style={styles.decorativeDots}>

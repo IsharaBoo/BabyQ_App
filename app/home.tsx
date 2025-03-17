@@ -16,8 +16,6 @@ import { FontAwesome, FontAwesome5 } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { BlurView } from 'expo-blur';
-import { auth } from './firebase';
-import { onAuthStateChanged, signOut } from 'firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width } = Dimensions.get('window');
@@ -25,7 +23,7 @@ const { width } = Dimensions.get('window');
 export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [greeting, setGreeting] = useState('Good morning');
-  const [user, setUser] = useState<any>(null); 
+  const [user, setUser] = useState<any>(null);
   const router = useRouter();
   const scrollY = new Animated.Value(0);
 
@@ -33,41 +31,17 @@ export default function HomePage() {
   const slideAnim = useState(new Animated.Value(50))[0];
 
   useEffect(() => {
-    // Listen for auth state changes
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        // User is logged in, fetch their data from AsyncStorage
-        try {
-          const savedUserData = await AsyncStorage.getItem('userData');
-          if (savedUserData) {
-            const userData = JSON.parse(savedUserData);
-            setUser(userData);
-          } else {
-            // Fallback if no AsyncStorage data
-            setUser({
-              name: (firebaseUser.email?.split('@')[0] || 'User')
-                .replace(/[.\d]/g, ' ') // Replace dots and numbers with spaces
-                .replace(/\s+/g, ' ')   // Collapse multiple spaces into one
-                .trim(),                // Remove leading/trailing spaces
-              email: firebaseUser.email || 'N/A',
-              role: 'Parent/Guardian',
-              registrationDate: firebaseUser.metadata.creationTime
-              ? new Date(firebaseUser.metadata.creationTime).toLocaleDateString('en-US', {
-                  day: '2-digit',
-                  month: 'short',
-                  year: 'numeric',
-                }): 'N/A',
-              children: [],
-            });
-          }
-        } catch (error) {
-          console.error('Failed to fetch user data from AsyncStorage:', error);
-        }
+    const checkLoginState = async () => {
+      const savedUserData = await AsyncStorage.getItem('userData');
+      if (savedUserData) {
+        const userData = JSON.parse(savedUserData);
+        setUser(userData);
       } else {
-        // No user logged in, redirect to login
         router.replace('/login');
       }
-    });
+    };
+
+    checkLoginState();
 
     // Set greeting based on time of day
     const hours = new Date().getHours();
@@ -88,9 +62,6 @@ export default function HomePage() {
         useNativeDriver: true,
       }),
     ]).start();
-
-    // Cleanup subscription
-    return () => unsubscribe();
   }, []);
 
   const handleSearch = () => {
@@ -109,9 +80,9 @@ export default function HomePage() {
 
   const handleLogout = async () => {
     try {
-      await signOut(auth);
       await AsyncStorage.removeItem('userData');
       await AsyncStorage.removeItem('email');
+      await AsyncStorage.removeItem('password');
       router.replace('/login');
     } catch (error) {
       console.error('Failed to logout:', error);
@@ -152,6 +123,7 @@ export default function HomePage() {
     return <Text>Loading...</Text>;
   }
 
+ 
   return (
     <View style={styles.container}>
       <LinearGradient colors={['#E8F0FF', '#FFFFFF']} style={styles.gradientBackground} />

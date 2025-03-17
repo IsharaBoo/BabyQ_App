@@ -1,17 +1,20 @@
-import React, { useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, Alert, Animated } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Image, Alert, Animated, ActivityIndicator } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { auth, firestore, storage } from './firebase';
+import * as DocumentPicker from 'expo-document-picker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
+
+const backendUrl = 'http://192.168.1.5:8082';
 
 export default function HealthcareProviderRegistration4() {
   const router = useRouter();
   const params = useLocalSearchParams();
+  const [fileName, setFileName] = useState<string | null>(null);
+  const [fileUri, setFileUri] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
-  // Retrieve all provider data
   const providerData = {
     firstName: params.firstName as string,
     lastName: params.lastName as string,
@@ -23,83 +26,109 @@ export default function HealthcareProviderRegistration4() {
     affiliatedHospital: params.affiliatedHospital as string,
     workplaceAddress: params.workplaceAddress as string,
     position: params.position as string,
-    fileUri: params.fileUri as string,
-    fileName: params.fileName as string,
+    photoUrl: params.photoUrl as string, // From HealthcareProviderRegistration2
   };
 
-  // Create a reference for opacity animation
+  // Animation for title
   const titleOpacity = useRef(new Animated.Value(0)).current;
 
-  // Animate title on mount
   useEffect(() => {
     Animated.timing(titleOpacity, {
-      toValue: 1, // Fade in fully
-      duration: 1000, // Duration of the fade-in effect
-      useNativeDriver: true, // Use native driver for better performance
+      toValue: 1,
+      duration: 1000,
+      useNativeDriver: true,
     }).start();
   }, []);
 
-  const handleCompleteProfile = async () => {
+  const handleUpload = async () => {
     try {
-      console.log("Starting registration process...");
-      console.log("Provider Data:", providerData);
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ['application/pdf', 'image/jpeg', 'image/png'],
+        copyToCacheDirectory: true,
+      });
 
-      // Validate required fields (email and password only)
-      if (!providerData.email) throw new Error("Email is missing");
-      if (!providerData.password) throw new Error("Password is missing");
-      if (providerData.password.length < 6) throw new Error("Password must be at least 6 characters");
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const file = result.assets[0];
+        setFileName(file.name);
+        setFileUri(file.uri);
+        console.log('File selected:', file.name);
+      }
+    } catch (error) {
+      console.error('Error picking document:', error);
+      Alert.alert('Error', 'Failed to select document');
+    }
+  };
 
-      // Step 1: Create Firebase Auth user
-      console.log("Creating user with email:", providerData.email);
-      const userCredential = await createUserWithEmailAndPassword(auth, providerData.email, providerData.password);
-      const user = userCredential.user;
-      console.log("User created successfully, UID:", user.uid);
+  const handleCompleteProfile = async () => {
+    setIsUploading(true);
 
-      // Step 2: Optionally upload file to Firebase Storage
-      let documentUrl: string | null = null;
-      if (providerData.fileUri && providerData.fileName) {
-        console.log("Fetching file from URI:", providerData.fileUri);
-        const response = await fetch(providerData.fileUri);
-        if (!response.ok) {
-          console.warn(`Failed to fetch file: ${response.statusText}, proceeding without document`);
-        } else {
-          const blob = await response.blob();
-          console.log("File fetched, uploading to Storage...");
-          const fileRef = ref(storage, `provider_documents/${user.uid}/${providerData.fileName}`);
-          await uploadBytes(fileRef, blob);
-          documentUrl = await getDownloadURL(fileRef);
-          console.log("File uploaded successfully, URL:", documentUrl);
+    try {
+      let documentUrl = providerData.photoUrl || null; // Use photoUrl as default if no document
+      if (fileUri) {
+        const formData = new FormData();
+        formData.append('file', {
+          uri: fileUri,
+          name: fileName || 'document',
+          type: 'application/octet-stream',
+        } as any);
+        formData.append('email', providerData.email);
+
+        try {
+          const uploadResponse = await axios.post(`${backendUrl}/api/upload`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+          });
+          documentUrl = uploadResponse.data.url; // Override with document if uploaded
+          console.log('Document uploaded:', documentUrl);
+        } catch (uploadError) {
+          console.warn('Document upload failed, proceeding without it:', uploadError);
+          Alert.alert('Warning', 'Document upload failed, but registration will continue.');
         }
-      } else {
-        console.log("No file provided, skipping upload...");
       }
 
-      // Step 3: Save user data to Firestore
-      console.log("Saving user data to Firestore...");
-      const userData = {
-        role: 'healthcare_provider',
+      const providerPayload = {
         firstName: providerData.firstName,
         lastName: providerData.lastName,
         nicNumber: providerData.nicNumber,
-        email: providerData.email,
+        professionalEmail: providerData.email,
+        password: providerData.password,
         phoneNumber: providerData.phoneNumber,
         medicalLicenseNumber: providerData.medicalLicenseNumber,
         affiliatedHospital: providerData.affiliatedHospital,
         workplaceAddress: providerData.workplaceAddress,
         position: providerData.position,
-        documentUrl: documentUrl || null, // Store null if no document
-        createdAt: new Date().toISOString(),
+        documentUrl: documentUrl || null,
       };
-      await setDoc(doc(firestore, 'users', user.uid), userData);
-      console.log("User data saved to Firestore");
-  
-      console.log("Healthcare Provider registration successful");
-      Alert.alert('Success', 'Account created! Please log in.');
-      router.replace('/login');  // This should work after everything is done
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-      console.error('Registration error:', errorMessage);
-      Alert.alert('Registration Failed', errorMessage);
+
+      const response = await axios.post(`${backendUrl}/api/doctors`, providerPayload);
+      const registeredDoctor = response.data;
+      console.log('Provider registered:', registeredDoctor);
+
+      const userData = {
+        id: registeredDoctor.id,
+        name: `${registeredDoctor.firstName} ${registeredDoctor.lastName}`,
+        email: registeredDoctor.professionalEmail,
+        role: 'Healthcare Provider',
+        registrationDate: new Date().toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }),
+        nicNumber: registeredDoctor.nicNumber,
+        phoneNumber: registeredDoctor.phoneNumber,
+        medicalLicenseNumber: registeredDoctor.medicalLicenseNumber,
+        affiliatedHospital: registeredDoctor.affiliatedHospital,
+        workplaceAddress: registeredDoctor.workplaceAddress,
+        position: registeredDoctor.position,
+        photoUrl: providerData.photoUrl || null,
+        documentUrl: registeredDoctor.documentUrl || null,
+      };
+      await AsyncStorage.setItem('userData', JSON.stringify(userData));
+      console.log('User data saved to AsyncStorage:', userData);
+
+      Alert.alert('Success', 'Healthcare provider registered successfully! Please log in.', [
+        { text: 'OK', onPress: () => router.push('/home') },
+      ]);
+    } catch (error: any) {
+      console.error('Error registering provider:', error.response?.data || error.message);
+      Alert.alert('Registration Failed', error.response?.data?.message || 'An error occurred');
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -113,7 +142,6 @@ export default function HealthcareProviderRegistration4() {
         <Ionicons name="arrow-back" size={24} color="#2D4BC2" />
       </TouchableOpacity>
 
-      {/* Animated Title */}
       <Animated.Text style={[styles.title, { opacity: titleOpacity }]}>
         You successfully created your account!
       </Animated.Text>
@@ -127,8 +155,25 @@ export default function HealthcareProviderRegistration4() {
 
       <Image source={require('../assets/images/successHands.png')} style={styles.image} />
 
-      <TouchableOpacity style={styles.button} onPress={handleCompleteProfile}>
-        <Text style={styles.buttonText}>Complete Profile</Text>
+      <Text style={styles.instructions}>
+        Please upload a document proving your affiliation (optional).
+      </Text>
+
+      <TouchableOpacity style={styles.uploadButton} onPress={handleUpload} disabled={isUploading}>
+        <Ionicons name="document-attach-outline" size={35} color="#2D4BC2" />
+        <Ionicons name="add-circle" size={20} color="#2D4BC2" style={styles.plusIcon} />
+      </TouchableOpacity>
+
+      {fileName ? (
+        <Text style={styles.fileName}>{fileName}</Text>
+      ) : (
+        <Text style={styles.fileFormats}>PDF, JPG, PNG</Text>
+      )}
+
+      {isUploading && <ActivityIndicator size="small" color="#2D4BC2" style={{ marginVertical: 10 }} />}
+
+      <TouchableOpacity style={styles.button} onPress={handleCompleteProfile} disabled={isUploading}>
+        <Text style={styles.buttonText}>{isUploading ? 'Registering...' : 'Complete Profile'}</Text>
       </TouchableOpacity>
 
       <View style={styles.decorativeDots}>
@@ -143,10 +188,10 @@ export default function HealthcareProviderRegistration4() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
     backgroundColor: '#fff',
     padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   backButton: {
     position: 'absolute',
@@ -160,26 +205,6 @@ const styles = StyleSheet.create({
     letterSpacing: 1.5,
     textAlign: 'center',
     marginBottom: 20,
-  },
-  image: {
-    width: 200,
-    height: 200,
-    marginBottom: 30,
-  },
-  button: {
-    width: '90%',
-    backgroundColor: '#2D4BC2',
-    paddingVertical: 15,
-    borderRadius: 20,
-    alignItems: 'center',
-    elevation: 5,
-    marginTop: 20,
-  },
-  buttonText: {
-    color: '#FFFFFF',
-    fontSize: 20,
-    fontWeight: '700',
-    letterSpacing: 1,
   },
   progressContainer: {
     flexDirection: 'row',
@@ -198,6 +223,54 @@ const styles = StyleSheet.create({
   active: {
     backgroundColor: '#FFA500',
   },
+  image: {
+    width: 200,
+    height: 200,
+    marginBottom: 30,
+  },
+  instructions: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 20,
+    color: '#333',
+    paddingHorizontal: 10,
+  },
+  uploadButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 10,
+    backgroundColor: '#E5E5E5',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 10,
+  },
+  fileName: {
+    fontSize: 14,
+    color: '#2D4BC2',
+    marginBottom: 10,
+    textAlign: 'center',
+    fontWeight: '600',
+  },
+  fileFormats: {
+    fontSize: 14,
+    color: '#7A7A7A',
+    marginBottom: 20,
+  },
+  button: {
+    width: '90%',
+    backgroundColor: '#2D4BC2',
+    paddingVertical: 15,
+    borderRadius: 20,
+    alignItems: 'center',
+    elevation: 5,
+    marginTop: 20,
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 20,
+    fontWeight: '700',
+    letterSpacing: 1,
+  },
   decorativeDots: {
     position: 'absolute',
     bottom: 30,
@@ -211,5 +284,10 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: '#FF6F91',
     opacity: 0.6,
+  },
+  plusIcon: {
+    position: 'absolute',
+    bottom: -5,
+    right: -5,
   },
 });

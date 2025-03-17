@@ -17,7 +17,7 @@ const ParentRegistration1: React.FC = () => {
   const [address, setAddress] = useState<string>('');
   const [phoneNumber, setPhoneNumber] = useState<string>('');
   const [email, setEmail] = useState<string>('');
-  const [isLoading, setIsLoading] = useState<boolean>(false); // Added for UX
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const handleContinue = () => {
     setIsLoading(true);
@@ -26,7 +26,6 @@ const ParentRegistration1: React.FC = () => {
       setIsLoading(false);
       return;
     }
-
 
     if (!/^\d{10}$/.test(phoneNumber)) {
       Alert.alert('Error', 'Please enter a valid 10-digit phone number');
@@ -40,8 +39,8 @@ const ParentRegistration1: React.FC = () => {
       return;
     }
 
-    // Validate DOB (basic check)
-    const dobDate = new Date(`${dob.year}-${dob.month}-${dob.day}`);
+    const dobString = `${dob.year}-${dob.month.padStart(2, '0')}-${dob.day.padStart(2, '0')}`;
+    const dobDate = new Date(dobString);
     if (isNaN(dobDate.getTime()) || dobDate > new Date()) {
       Alert.alert('Error', 'Please enter a valid date of birth');
       setIsLoading(false);
@@ -53,7 +52,7 @@ const ParentRegistration1: React.FC = () => {
       params: {
         fullName,
         nicNumber,
-        dob: JSON.stringify(dob),
+        dateOfBirth: dobString, // Pass as ISO string for backend
         address,
         phoneNumber,
         email,
@@ -66,35 +65,17 @@ const ParentRegistration1: React.FC = () => {
     router.push('/login');
   };
 
-  const handleBack = () => {
-    router.back(); // Goes back to the previous screen
-  };
-
   return (
     <View style={styles.container}>
-      {/* Back Button */}
       <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-           <Ionicons name="arrow-back" size={28} color="#2D4BC2" />
-            </TouchableOpacity>
-
+        <Ionicons name="arrow-back" size={28} color="#2D4BC2" />
+      </TouchableOpacity>
 
       <Text style={styles.title}>Sign up as a Parent/Guardian</Text>
       <Text style={styles.subtitle}>Start Your Journey with Us!</Text>
 
-      <TextInput
-        placeholder="Full name"
-        value={fullName}
-        onChangeText={setFullName}
-        style={styles.input}
-        placeholderTextColor="#666"
-      />
-      <TextInput
-        placeholder="NIC number"
-        value={nicNumber}
-        onChangeText={setNicNumber}
-        style={styles.input}
-        placeholderTextColor="#666"
-      />
+      <TextInput placeholder="Full name" value={fullName} onChangeText={setFullName} style={styles.input} placeholderTextColor="#666" />
+      <TextInput placeholder="NIC number" value={nicNumber} onChangeText={setNicNumber} style={styles.input} placeholderTextColor="#666" />
       <View style={styles.dobContainer}>
         <TextInput
           placeholder="DD"
@@ -124,13 +105,7 @@ const ParentRegistration1: React.FC = () => {
           keyboardType="numeric"
         />
       </View>
-      <TextInput
-        placeholder="Address"
-        value={address}
-        onChangeText={setAddress}
-        style={styles.input}
-        placeholderTextColor="#666"
-      />
+      <TextInput placeholder="Address" value={address} onChangeText={setAddress} style={styles.input} placeholderTextColor="#666" />
       <TextInput
         placeholder="Phone number"
         value={phoneNumber}

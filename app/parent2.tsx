@@ -3,11 +3,8 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView 
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { RadioButton } from 'react-native-paper';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, setDoc, setLogLevel } from 'firebase/firestore';
-import { auth, firestore } from './firebase';
-
-setLogLevel('debug');
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface DOB {
   month: string;
@@ -23,7 +20,7 @@ export default function ParentRegistration2() {
   const parentData = {
     fullName: params.fullName as string,
     nicNumber: params.nicNumber as string,
-    dob: JSON.parse(params.dob as string) as DOB,
+    dateOfBirth: params.dateOfBirth as string,
     address: params.address as string,
     phoneNumber: params.phoneNumber as string,
     email: params.email as string,
@@ -40,9 +37,10 @@ export default function ParentRegistration2() {
   const [additionalInfo, setAdditionalInfo] = useState<string>('');
   const [password, setPassword] = useState<string>('');
 
+  const backendUrl = 'http://192.168.1.5:8082'; // Backend URL
+
   const handleSignUp = async () => {
     setIsLoading(true);
-    console.log('Starting signup...');
 
     if (!childName || !birthCertNumber || !childDob.day || !childDob.month || !childDob.year || !gender || !password) {
       Alert.alert('Error', 'Please fill in all required fields');
@@ -56,7 +54,8 @@ export default function ParentRegistration2() {
       return;
     }
 
-    const childDobDate = new Date(`${childDob.year}-${childDob.month}-${childDob.day}`);
+    const childDobString = `${childDob.year}-${childDob.month.padStart(2, '0')}-${childDob.day.padStart(2, '0')}`;
+    const childDobDate = new Date(childDobString);
     if (isNaN(childDobDate.getTime()) || childDobDate > new Date()) {
       Alert.alert('Error', 'Please enter a valid child date of birth');
       setIsLoading(false);
@@ -64,55 +63,87 @@ export default function ParentRegistration2() {
     }
 
     try {
-      console.log('Creating user with email:', parentData.email);
-      const userCredential = await createUserWithEmailAndPassword(auth, parentData.email, password);
-      const user = userCredential.user;
-      console.log('User created with UID:', user.uid);
-
-      const userData = {
-        role: 'parent',
+      // Step 1: Register the Parent
+      const parentPayload = {
         fullName: parentData.fullName,
         nicNumber: parentData.nicNumber,
-        dob: parentData.dob,
+        dateOfBirth: parentData.dateOfBirth,
         address: parentData.address,
         phoneNumber: parentData.phoneNumber,
         email: parentData.email,
-        children: [
-          {
-            childName,
-            birthCertNumber,
-            dob: childDob,
-            gender,
-            bloodType: bloodType || null,
-            weight: weight || null,
-            height: height || null,
-            allergies: allergies || null,
-            additionalInfo: additionalInfo || null,
-          },
-        ],
-        createdAt: new Date().toISOString(),
+        password,
       };
-      console.log('Writing to Firestore:', JSON.stringify(userData));
-      await setDoc(doc(firestore, 'users', user.uid), userData);
-      console.log('Firestore write succeeded');
 
+      console.log('Registering parent:', parentPayload);
+      const parentResponse = await axios.post(`${backendUrl}/api/parents`, parentPayload);
+      const parentId = parentResponse.data.id;
+      console.log('Parent registered with ID:', parentId);
+
+      // Step 2: Register the Child
+      const childPayload = {
+        name: childName,
+        birthCNo: birthCertNumber,
+        dob: childDobString,
+        gender,
+        bloodGroup: bloodType || null,
+        allergies: allergies || null,
+        age: Math.floor((new Date().getTime() - childDobDate.getTime()) / (1000 * 60 * 60 * 24 * 365.25)),
+        weight: weight ? parseFloat(weight) : null,
+        height: height ? parseFloat(height) : null,
+        additionalDetails: additionalInfo || null,
+        parentId,
+      };
+
+      console.log('Registering child:', childPayload);
+      await axios.post(`${backendUrl}/api/children`, childPayload);
+      console.log('Child registered successfully');
+
+      // Step 3: Save user data to AsyncStorage for HomePage
+      const userData = {
+        name: parentData.fullName,
+        email: parentData.email,
+        role: 'Parent/Guardian',
+        registrationDate: new Date().toLocaleDateString('en-US', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+        }),
+        nicNumber: parentData.nicNumber,
+        dob: {
+          month: parentData.dateOfBirth.slice(5, 7),
+          day: parentData.dateOfBirth.slice(8, 10),
+          year: parentData.dateOfBirth.slice(0, 4),
+        },
+        address: parentData.address,
+        phoneNumber: parentData.phoneNumber,
+      };
+      await AsyncStorage.setItem('userData', JSON.stringify(userData));
+      console.log('User data saved to AsyncStorage:', userData);
+
+      // Step 4: Navigate to /home
       Alert.alert(
         'Success',
-        'Parent account created successfully!',
-        [{ text: 'OK', onPress: () => router.replace('/home') }],
+        'Parent and child registered successfully!',
+        [{
+          text: 'OK',
+          onPress: () => {
+            console.log('Navigating to /home after signup');
+            router.push('/home');
+          },
+        }],
         { cancelable: false }
       );
     } catch (error: any) {
-      console.error('Signup error:', error);
-      console.error('Error code:', error.code);
-      console.error('Error message:', error.message);
-      let errorMessage = error.message || 'An unknown error occurred';
-      if (error.code === 'auth/email-already-in-use') {
-        errorMessage = 'This email is already in use.';
-      } else if (error.code === 'auth/invalid-email') {
-        errorMessage = 'Please enter a valid email address.';
-      } else if (error.code === 'permission-denied') {
-        errorMessage = 'Permission denied. Check Firestore rules.';
+      console.error('Signup error:', error.response?.data || error.message);
+      let errorMessage = 'An error occurred during registration';
+      if (error.response) {
+        if (error.response.status === 400) {
+          errorMessage = 'Invalid data provided';
+        } else if (error.response.status === 500) {
+          errorMessage = 'Server error, please try again later';
+        } else {
+          errorMessage = error.response.data || 'Registration failed';
+        }
       }
       Alert.alert('Registration Failed', errorMessage);
     } finally {

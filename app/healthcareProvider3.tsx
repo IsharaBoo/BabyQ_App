@@ -3,17 +3,19 @@ import { View, Text, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } fr
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
+
+const backendUrl = 'http://192.168.1.5:8082';
 
 export default function HealthcareProviderRegistration3() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const [fileName, setFileName] = useState<string | null>(null);
-  const [fileUri, setFileUri] = useState<string | null>(null);  // Local file URI
+  const [fileUri, setFileUri] = useState<string | null>(null);
+  const [fileType, setFileType] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [documentUrl, setDocumentUrl] = useState<string | null>(null); // Firebase document URL
 
-  // Retrieve data from previous pages
   const providerData = {
     firstName: params.firstName as string,
     lastName: params.lastName as string,
@@ -25,83 +27,97 @@ export default function HealthcareProviderRegistration3() {
     affiliatedHospital: params.affiliatedHospital as string,
     workplaceAddress: params.workplaceAddress as string,
     position: params.position as string,
+    photoUrl: params.photoUrl as string,
   };
 
-  // Function to handle document selection
   const handleUpload = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
         type: ['application/pdf', 'image/jpeg', 'image/png'],
         copyToCacheDirectory: true,
       });
-  
+
       if (!result.canceled && result.assets && result.assets.length > 0) {
-        const file = result.assets[0];
-        setFileName(file.name);
-        setFileUri(file.uri);
-  
-        // ✅ Upload to Firebase Storage
-        const storage = getStorage();
-        const fileRef = ref(storage, `documents/${file.name}`);
-        const response = await fetch(file.uri);
-        const blob = await response.blob();
-  
-        // Upload file
-        await uploadBytes(fileRef, blob);
-  
-        // ✅ Get the file URL
-        const downloadUrl = await getDownloadURL(fileRef);
-        setFileUri(downloadUrl); // Setting Firebase download URL
-        console.log('File uploaded successfully:', downloadUrl);
+        const { name, uri, mimeType } = result.assets[0];
+        setFileName(name);
+        setFileUri(uri);
+        setFileType(mimeType || 'application/octet-stream'); // Set correct type
+        console.log('File selected:', name);
       }
     } catch (error) {
-      console.error('Error picking/uploading document:', error);
-      Alert.alert('Error', 'Failed to upload document');
+      console.error('Error picking document:', error);
+      Alert.alert('Error', 'Failed to select document');
     }
   };
 
-  // Function to upload file to Firebase and proceed with registration
   const handleContinue = async () => {
     setIsUploading(true);
-    
-    if (fileUri) {
-      try {
-        const storage = getStorage();
-        const storageRef = ref(storage, `provider_documents/${providerData.email}/${fileName}`);
 
-        // Convert file to Blob
-        const response = await fetch(fileUri); // fileUri is the Firebase URL
-        const blob = await response.blob();
+    try {
+      let documentUrl = providerData.photoUrl || null;
 
-        // Upload file
-        const snapshot = await uploadBytes(storageRef, blob);
-        const downloadUrl = await getDownloadURL(snapshot.ref);
-        setDocumentUrl(downloadUrl);
-        console.log('File uploaded successfully:', downloadUrl);
+      if (fileUri) {
+        const formData = new FormData();
+        formData.append('file', {
+          uri: fileUri,
+          name: fileName || 'document',
+          type: fileType || 'application/octet-stream',
+        } as any);
+        formData.append('email', providerData.email);
 
-        // Proceed with registration
-        navigateToNextScreen(downloadUrl);
-      } catch (error) {
-        console.error('File upload failed:', error);
-        Alert.alert('Warning', 'Document upload failed, but registration will continue.');
-        navigateToNextScreen(null);
+        try {
+          const uploadResponse = await axios.post(`${backendUrl}/api/upload`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+          });
+          documentUrl = uploadResponse.data.url;
+          console.log('Document uploaded:', documentUrl);
+        } catch (uploadError) {
+          console.warn('Document upload failed:', uploadError);
+        }
       }
-    } else {
-      // No document uploaded, proceed
-      navigateToNextScreen(null);
-    }
-  };
 
-  // Navigate to the next screen with collected data
-  const navigateToNextScreen = (uploadedFileUrl: string | null) => {
-    setIsUploading(false);
-    router.push({
-      pathname: '/healthcareProvider4',
-      params: {
-        ...providerData,
-        documentUrl: uploadedFileUrl || '', // Store URL if available
-      },
-    });
+      const providerPayload = {
+        firstName: providerData.firstName,
+        lastName: providerData.lastName,
+        nicNumber: providerData.nicNumber,
+        professionalEmail: providerData.email,
+        password: providerData.password,
+        phoneNumber: providerData.phoneNumber,
+        medicalLicenseNumber: providerData.medicalLicenseNumber,
+        affiliatedHospital: providerData.affiliatedHospital,
+        workplaceAddress: providerData.workplaceAddress,
+        position: providerData.position,
+        documentUrl: documentUrl || null,
+      };
+
+      const response = await axios.post(`${backendUrl}/api/doctors`, providerPayload);
+      const registeredDoctor = response.data;
+
+      const userData = {
+        id: registeredDoctor.id,
+        name: `${registeredDoctor.firstName} ${registeredDoctor.lastName}`,
+        email: registeredDoctor.professionalEmail,
+        role: 'Healthcare Provider',
+        registrationDate: new Date().toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }),
+        nicNumber: registeredDoctor.nicNumber,
+        phoneNumber: registeredDoctor.phoneNumber,
+        medicalLicenseNumber: registeredDoctor.medicalLicenseNumber,
+        affiliatedHospital: registeredDoctor.affiliatedHospital,
+        workplaceAddress: registeredDoctor.workplaceAddress,
+        position: registeredDoctor.position,
+        photoUrl: providerData.photoUrl || null,
+      };
+      await AsyncStorage.setItem('userData', JSON.stringify(userData));
+
+      Alert.alert('Success', 'Healthcare provider registered successfully!', [
+        { text: 'OK', onPress: () => router.push('/healthcareProvider4') },
+      ]);
+    } catch (error: any) {
+      console.error('Error:', error.response?.data || error.message);
+      Alert.alert('Registration Failed', error.response?.data?.message || 'An error occurred');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
@@ -137,7 +153,7 @@ export default function HealthcareProviderRegistration3() {
       {isUploading && <ActivityIndicator size="small" color="#2D4BC2" style={{ marginVertical: 10 }} />}
 
       <TouchableOpacity style={styles.button} onPress={handleContinue} disabled={isUploading}>
-        <Text style={styles.buttonText}>{isUploading ? 'Uploading...' : 'Finish'}</Text>
+        <Text style={styles.buttonText}>{isUploading ? 'Registering...' : 'Finish'}</Text>
       </TouchableOpacity>
 
       <View style={styles.decorativeDots}>

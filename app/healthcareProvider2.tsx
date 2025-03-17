@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image, ActivityIndicator } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
+import axios from 'axios';
+
+const backendUrl = 'http://192.168.1.5:8082';
 
 export default function HealthcareProviderRegistration2() {
   const router = useRouter();
@@ -22,7 +25,9 @@ export default function HealthcareProviderRegistration2() {
   const [affiliatedHospital, setAffiliatedHospital] = useState<string>('');
   const [workplaceAddress, setWorkplaceAddress] = useState<string>('');
   const [position, setPosition] = useState<string>('');
-  const [photoUri, setPhotoUri] = useState<string | null>(null); // Store photo URI
+  const [photoUri, setPhotoUri] = useState<string | null>(null); // Local URI before upload
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null); // URL after upload
+  const [isUploading, setIsUploading] = useState(false);
 
   const pickImage = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -34,28 +39,57 @@ export default function HealthcareProviderRegistration2() {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
-      aspect: [1, 1], // Square aspect ratio
+      aspect: [1, 1],
       quality: 1,
     });
 
     if (!result.canceled) {
       setPhotoUri(result.assets[0].uri);
+      await uploadPhoto(result.assets[0].uri); // Upload immediately after picking
+    }
+  };
+
+  const uploadPhoto = async (uri: string) => {
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', {
+        uri,
+        name: `photo_${providerData.email}_${Date.now()}.jpg`, // Unique name
+        type: 'image/jpeg',
+      } as any);
+  
+      const response = await axios.post(`${backendUrl}/api/upload`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      setPhotoUrl(response.data.url);
+      console.log('Photo uploaded:', response.data.url);
+    } catch (error: any) {
+      console.error('Photo upload failed:', error.response?.data || error.message);
+      Alert.alert('Warning', 'Photo upload failed. You can continue without it.');
+      setPhotoUrl(null); // Proceed without photo if upload fails
+    } finally {
+      setIsUploading(false);
     }
   };
 
   const validateForm = () => {
-    if (!medicalLicenseNumber || !affiliatedHospital || !workplaceAddress || !position || !photoUri) {
-      Alert.alert('Error', 'Please fill in all fields and upload a photo');
+    if (!medicalLicenseNumber || !affiliatedHospital || !workplaceAddress || !position) {
+      Alert.alert('Error', 'Please fill in all fields');
+      return false;
+    }
+    if (!photoUri) {
+      Alert.alert('Error', 'Please upload a professional photo');
       return false;
     }
     return true;
   };
 
   const handleContinue = () => {
-    if (!validateForm()) return;
+    if (!validateForm() || isUploading) return;
 
     router.push(
-      `/healthcareProvider3?firstName=${encodeURIComponent(providerData.firstName)}&lastName=${encodeURIComponent(providerData.lastName)}&nicNumber=${encodeURIComponent(providerData.nicNumber)}&email=${encodeURIComponent(providerData.email)}&password=${encodeURIComponent(providerData.password)}&phoneNumber=${encodeURIComponent(providerData.phoneNumber)}&medicalLicenseNumber=${encodeURIComponent(medicalLicenseNumber)}&affiliatedHospital=${encodeURIComponent(affiliatedHospital)}&workplaceAddress=${encodeURIComponent(workplaceAddress)}&position=${encodeURIComponent(position)}&photoUri=${encodeURIComponent(photoUri || '')}`
+      `/healthcareProvider3?firstName=${encodeURIComponent(providerData.firstName)}&lastName=${encodeURIComponent(providerData.lastName)}&nicNumber=${encodeURIComponent(providerData.nicNumber)}&email=${encodeURIComponent(providerData.email)}&password=${encodeURIComponent(providerData.password)}&phoneNumber=${encodeURIComponent(providerData.phoneNumber)}&medicalLicenseNumber=${encodeURIComponent(medicalLicenseNumber)}&affiliatedHospital=${encodeURIComponent(affiliatedHospital)}&workplaceAddress=${encodeURIComponent(workplaceAddress)}&position=${encodeURIComponent(position)}&photoUrl=${encodeURIComponent(photoUrl || '')}`
     );
   };
 
@@ -107,25 +141,25 @@ export default function HealthcareProviderRegistration2() {
         placeholderTextColor="#666"
       />
 
-      {/* Photo Upload Section */}
-      <TouchableOpacity style={styles.uploadButtonContainer} onPress={pickImage} activeOpacity={0.8}>
+      <TouchableOpacity style={styles.uploadButtonContainer} onPress={pickImage} activeOpacity={0.8} disabled={isUploading}>
         <LinearGradient
-          colors={['#A9B8E8', '#2D4BC2']} // Gradient from light blue to primary blue
+          colors={['#A9B8E8', '#2D4BC2']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.uploadButtonGradient}
         >
           <Ionicons name="camera" size={24} color="#FFFFFF" style={styles.uploadIcon} />
           <Text style={styles.uploadButtonText}>
-            {photoUri ? 'Change The Photo' : 'Upload a Professional Photo'}
+            {photoUri ? (isUploading ? 'Uploading...' : 'Change The Photo') : 'Upload a Professional Photo'}
           </Text>
         </LinearGradient>
       </TouchableOpacity>
-      {photoUri && (
+      {photoUri && !isUploading && (
         <Image source={{ uri: photoUri }} style={styles.photoPreview} />
       )}
+      {isUploading && <ActivityIndicator size="small" color="#2D4BC2" style={{ marginTop: 10 }} />}
 
-      <TouchableOpacity style={styles.button} onPress={handleContinue}>
+      <TouchableOpacity style={styles.button} onPress={handleContinue} disabled={isUploading}>
         <Text style={styles.buttonText}>Continue</Text>
       </TouchableOpacity>
 
@@ -193,9 +227,9 @@ const styles = StyleSheet.create({
     marginTop: 15,
     marginBottom: 15,
     borderRadius: 10,
-    overflow: 'hidden', // Ensures gradient respects border radius
-    elevation: 5, // Shadow for Android
-    shadowColor: '#000', // Shadow for iOS
+    overflow: 'hidden',
+    elevation: 5,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
@@ -210,7 +244,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   uploadButtonText: {
-    color: '#FFFFFF', // White text for contrast on gradient
+    color: '#FFFFFF',
     fontSize: 18,
     fontWeight: '700',
     letterSpacing: 0.5,

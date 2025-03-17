@@ -1,30 +1,31 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Animated, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Animated, Alert, ActivityIndicator } from 'react-native';
 import Checkbox from 'expo-checkbox';
 import { FontAwesome, Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from './firebase'; // Corrected import for the same directory
-import AsyncStorage from '@react-native-async-storage/async-storage'; // For storing the email and password
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const backendUrl = 'http://192.168.1.5:8082';
 
 const LoginPage: React.FC = () => {
   const router = useRouter();
   const bounceValue = useRef(new Animated.Value(0)).current;
-  const [showPassword, setShowPassword] = useState<boolean>(false);
-  const [email, setEmail] = useState<string>('');
-  const [password, setPassword] = useState<string>('');
-  const [rememberPassword, setRememberPassword] = useState<boolean>(false); // Remember me state
+  const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [rememberPassword, setRememberPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    // Check if there is any stored email and password
     const loadCredentials = async () => {
       const storedEmail = await AsyncStorage.getItem('email');
       const storedPassword = await AsyncStorage.getItem('password');
       if (storedEmail && storedPassword) {
         setEmail(storedEmail);
         setPassword(storedPassword);
-        setRememberPassword(true); // Remember the user is checked
+        setRememberPassword(true);
       }
     };
 
@@ -51,34 +52,107 @@ const LoginPage: React.FC = () => {
       {
         translateY: bounceValue.interpolate({
           inputRange: [0, 1],
-          outputRange: [0, -8] as [number, number], // TypeScript requires explicit tuple
+          outputRange: [0, -8],
         }),
       },
     ],
   };
 
   const handleLogin = async () => {
-    console.log("Email entered:", email);
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      console.log("Login successful");
+    if (!email || !password) {
+      Alert.alert('Error', 'Please enter both email and password');
+      return;
+    }
 
-      // Save the email and password to AsyncStorage if "Remember Me" is checked
+    setIsLoading(true);
+    console.log('Email entered:', email);
+
+    try {
+      // Try doctor login first
+      console.log('Attempting doctor login...');
+      const doctorResponse = await axios.post(`${backendUrl}/api/doctors/login`, {
+        professionalEmail: email,
+        password,
+      });
+      console.log('Doctor login successful:', doctorResponse.data);
+
+      const doctorData = doctorResponse.data;
+      const doctorUserData = {
+        id: doctorData.id,
+        name: `${doctorData.firstName} ${doctorData.lastName}`,
+        email: doctorData.professionalEmail,
+        role: 'Healthcare Provider',
+        registrationDate: new Date().toLocaleDateString('en-US', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+        }),
+        nicNumber: doctorData.nicNumber,
+        phoneNumber: doctorData.phoneNumber,
+        medicalLicenseNumber: doctorData.medicalLicenseNumber,
+        affiliatedHospital: doctorData.affiliatedHospital,
+        workplaceAddress: doctorData.workplaceAddress,
+        position: doctorData.position,
+        documentUrl: doctorData.documentUrl || null,
+      };
+      await AsyncStorage.setItem('userData', JSON.stringify(doctorUserData));
+      console.log('Doctor user data saved to AsyncStorage:', doctorUserData);
+
       if (rememberPassword) {
         await AsyncStorage.setItem('email', email);
         await AsyncStorage.setItem('password', password);
       } else {
-        // Remove credentials from AsyncStorage if not remembered
         await AsyncStorage.removeItem('email');
         await AsyncStorage.removeItem('password');
       }
 
-      router.replace('/home');
-    } catch (error: unknown) {
-      // TypeScript doesn't know error type by default, so we cast it
-      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
-      console.error("Login error:", errorMessage);
-      Alert.alert("Login Failed", errorMessage);
+      Alert.alert('Success', 'Logged in as Healthcare Provider!', [
+        { text: 'OK', onPress: () => router.push('/home') },
+      ]);
+    } catch (doctorError: any) {
+      console.log('Doctor login failed:', doctorError.response?.data || doctorError.message);
+
+      // Fallback to parent login
+      console.log('Attempting parent login...');
+      try {
+        const parentResponse = await axios.post(`${backendUrl}/api/parents/login`, {
+          email,
+          password,
+        });
+        console.log('Parent login successful:', parentResponse.data);
+
+        const parentData = parentResponse.data;
+        const parentUserData = {
+          name: parentData.fullName || email.split('@')[0].replace(/[.\d]/g, ' ').trim(),
+          email: email,
+          role: 'Parent/Guardian',
+          registrationDate: new Date().toLocaleDateString('en-US', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+          }),
+        };
+        await AsyncStorage.setItem('userData', JSON.stringify(parentUserData));
+        console.log('Parent user data saved to AsyncStorage:', parentUserData);
+
+        if (rememberPassword) {
+          await AsyncStorage.setItem('email', email);
+          await AsyncStorage.setItem('password', password);
+        } else {
+          await AsyncStorage.removeItem('email');
+          await AsyncStorage.removeItem('password');
+        }
+
+        Alert.alert('Success', 'Logged in as Parent/Guardian!', [
+          { text: 'OK', onPress: () => router.push('/home') },
+        ]);
+      } catch (parentError: any) {
+        console.error('Parent login error:', parentError.response?.data || parentError.message);
+        const errorMessage = parentError.response?.data || 'Invalid email or password';
+        Alert.alert('Login Failed', errorMessage);
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -117,7 +191,7 @@ const LoginPage: React.FC = () => {
         />
         <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
           <Ionicons
-            name={showPassword ? "eye" : "eye-off"}
+            name={showPassword ? 'eye' : 'eye-off'}
             size={22}
             color="#2D4BC2"
             style={styles.icon}
@@ -138,8 +212,10 @@ const LoginPage: React.FC = () => {
         <Text style={styles.rememberMeText}>Remember me</Text>
       </View>
 
-      <TouchableOpacity style={styles.loginButton} onPress={handleLogin} activeOpacity={0.8}>
-        <Text style={styles.loginText}>Login!</Text>
+      {isLoading && <ActivityIndicator size="small" color="#2D4BC2" style={{ marginVertical: 10 }} />}
+
+      <TouchableOpacity style={styles.loginButton} onPress={handleLogin} disabled={isLoading} activeOpacity={0.8}>
+        <Text style={styles.loginText}>{isLoading ? 'Logging in...' : 'Login!'}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => router.push('/registerSelect')} style={styles.registerContainer}>
