@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import java.time.LocalDate;
 
 public class ChildDTO {
+    private Long id;
     private String name;
     private String birthCNo;
     private String gender;
@@ -21,6 +22,10 @@ public class ChildDTO {
     private Long parentId;
 
     // Getters and Setters
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 
@@ -54,20 +59,4 @@ public class ChildDTO {
     public Long getParentId() { return parentId; }
     public void setParentId(Long parentId) { this.parentId = parentId; }
 
-    @Override
-    public String toString() {
-        return "ChildDTO{" +
-                "name='" + name + '\'' +
-                ", birthCNo='" + birthCNo + '\'' +
-                ", dob=" + dob +
-                ", gender='" + gender + '\'' +
-                ", bloodGroup='" + bloodGroup + '\'' +
-                ", allergies='" + allergies + '\'' +
-                ", age=" + age +
-                ", weight=" + weight +
-                ", height=" + height +
-                ", additionalDetails='" + additionalDetails + '\'' +
-                ", parentId=" + parentId +
-                '}';
-    }
 }

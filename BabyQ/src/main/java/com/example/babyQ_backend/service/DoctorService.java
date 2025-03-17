@@ -7,5 +7,9 @@ public interface DoctorService {
     Doctor registerDoctor(Doctor provider);
     List<Doctor> getAllDoctors(); // Add this method
     void deleteDoctor(Long id) throws IllegalArgumentException; // Throws if not found
-    Doctor updateDoctor(Doctor doctor) throws IllegalArgumentException; // Throws if n
+    Doctor updateDoctor(Doctor doctor) throws IllegalArgumentException;
+    Doctor getDoctorById(Long id);
+    boolean emailExists(String email);
+    Doctor loginDoctor(String email, String password);
+    List<Doctor> searchDoctors(String query);
 }

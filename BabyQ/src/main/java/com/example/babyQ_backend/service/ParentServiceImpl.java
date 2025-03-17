@@ -2,10 +2,12 @@ package com.example.babyQ_backend.service;
 
 import com.example.babyQ_backend.model.Parent;
 import com.example.babyQ_backend.repository.ParentRepository;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ParentServiceImpl implements ParentService {
@@ -23,7 +25,7 @@ public class ParentServiceImpl implements ParentService {
     }
 
     @Override
-    public void deleteParent(Long id) {
+    public void deleteParent(Long id) throws IllegalArgumentException {
         if (!parentRepository.existsById(id)) {
             throw new IllegalArgumentException("Parent with ID " + id + " not found");
         }
@@ -31,8 +33,11 @@ public class ParentServiceImpl implements ParentService {
     }
 
     @Override
-    public Parent updateParent(Parent parentDetails) {
-        Long id = parentDetails.getId(); // Use the ID from the Parent object
+    public Parent updateParent(Parent parentDetails) throws IllegalArgumentException {
+        Long id = parentDetails.getId();
+        if (id == null) {
+            throw new IllegalArgumentException("Parent ID cannot be null for update");
+        }
         return parentRepository.findById(id)
                 .map(existingParent -> {
                     existingParent.setFullName(parentDetails.getFullName());
@@ -42,8 +47,22 @@ public class ParentServiceImpl implements ParentService {
                     existingParent.setPhoneNumber(parentDetails.getPhoneNumber());
                     existingParent.setEmail(parentDetails.getEmail());
                     existingParent.setPassword(parentDetails.getPassword());
-                    return parentRepository.save(existingParent); // Save updates
+                    return parentRepository.save(existingParent);
                 })
                 .orElseThrow(() -> new IllegalArgumentException("Parent with ID " + id + " not found"));
+    }
+
+    @Override
+    public Parent getParentById(Long id) {
+        Parent parent = parentRepository.findById(id).orElse(null);
+        if (parent != null) {
+            Hibernate.initialize(parent.getChildren()); // Ensure children are loaded
+        }
+        return parent;
+    }
+
+    @Override
+    public Optional<Parent> findByEmail(String email) {
+        return parentRepository.findByEmail(email);
     }
 }

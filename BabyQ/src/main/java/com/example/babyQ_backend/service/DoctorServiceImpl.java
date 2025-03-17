@@ -49,4 +49,29 @@ public class DoctorServiceImpl implements DoctorService {
                 })
                 .orElseThrow(() -> new IllegalArgumentException("Doctor with ID " + id + " not found"));
     }
+    public Doctor getDoctorById(Long id) {
+        return doctorRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Doctor not found with ID: " + id));
+    }
+    @Override
+    public boolean emailExists(String email) {
+        return doctorRepository.findByProfessionalEmail(email) != null;
+    }
+
+    @Override
+    public List<Doctor> searchDoctors(String query) {
+        // Search by firstName, lastName, or position (case-insensitive)
+        return doctorRepository.findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCaseOrPositionContainingIgnoreCase(
+                query, query, query
+        );
+    }
+    @Override
+    public Doctor loginDoctor(String email, String password) {
+        Doctor doctor = doctorRepository.findByProfessionalEmail(email);
+        if (doctor != null && doctor.getPassword().equals(password)) { // Plain text comparison; use hashing in production
+            return doctor;
+        }
+        return null;
+    }
+
 }

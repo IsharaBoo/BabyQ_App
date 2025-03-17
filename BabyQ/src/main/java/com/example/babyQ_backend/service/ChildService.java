@@ -10,4 +10,5 @@ public interface ChildService {
     List<Child> getAllChildren();
     Child updateChild(Long id, Child childDetails) throws IllegalArgumentException;
     void deleteChild(Long id) throws IllegalArgumentException;
+    Child getChildById(Long id);
 }

@@ -13,6 +13,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/children")
+@CrossOrigin(origins = {"http://localhost:8081", "*"})
 public class ChildController_D {
 
     @Autowired
@@ -21,91 +22,86 @@ public class ChildController_D {
     @Autowired
     private ParentRepository parentRepository;
 
-    // ✅ CREATE A CHILD (POST)
+    // CREATE A CHILD (POST)
     @PostMapping
-    public ResponseEntity<ChildDTO> saveChild(@RequestBody ChildDTO childDTO) {
-        System.out.println("Received POST request: " + childDTO); // Log the received data
+    public ResponseEntity<?> saveChild(@RequestBody ChildDTO childDTO) {
+        System.out.println("Received POST request: " + childDTO);
 
-        // Convert DTO to Entity
-        Child child = new Child();
-        child.setName(childDTO.getName());
-        child.setBirthCNo(childDTO.getBirthCNo());
-        child.setDob(childDTO.getDob());
-        child.setGender(childDTO.getGender());
-        child.setBloodGroup(childDTO.getBloodGroup());
-        child.setAllergies(childDTO.getAllergies());
-        child.setAge(childDTO.getAge());
-        child.setWeight(childDTO.getWeight());
-        child.setHeight(childDTO.getHeight());
-        child.setAdditionalDetails(childDTO.getAdditionalDetails());
-
-        // Fetch the parent from the database by parentId (assumed to be in ChildDTO)
-        Long parentId = childDTO.getParentId(); // Add parentId to ChildDTO
-        if (parentId == null) {
-            return ResponseEntity.badRequest().body(null); // Missing parentId
+        if (childDTO.getParentId() == null) {
+            return ResponseEntity.badRequest().body("Parent ID is required.");
         }
-        Parent parent = parentRepository.findById(parentId)
-                .orElseThrow(() -> new IllegalArgumentException("Parent not found with ID: " + parentId));
+
+        Parent parent = parentRepository.findById(childDTO.getParentId())
+                .orElseThrow(() -> new IllegalArgumentException("Parent not found with ID: " + childDTO.getParentId()));
+
+        Child child = mapToEntity(childDTO);
         child.setParent(parent);
 
-        // Save the child entity
-        Child savedChild = childService.saveChild(child);
-
-        // Map savedChild entity back to ChildDTO for response
-        ChildDTO responseDTO = new ChildDTO();
-        responseDTO.setName(savedChild.getName());
-        responseDTO.setBirthCNo(savedChild.getBirthCNo());
-        responseDTO.setDob(savedChild.getDob());
-        responseDTO.setGender(savedChild.getGender());
-        responseDTO.setBloodGroup(savedChild.getBloodGroup());
-        responseDTO.setAllergies(savedChild.getAllergies());
-        responseDTO.setAge(savedChild.getAge());
-        responseDTO.setWeight(savedChild.getWeight());
-        responseDTO.setHeight(savedChild.getHeight());
-        responseDTO.setAdditionalDetails(savedChild.getAdditionalDetails());
-        responseDTO.setParentId(savedChild.getParent().getId());
-
-        return ResponseEntity.ok(responseDTO);
-    }
-
-    // ✅ GET ALL CHILDREN (GET)
-    @GetMapping
-    public ResponseEntity<List<Child>> getAllChildren() {
-        return ResponseEntity.ok(childService.getAllChildren());
-    }
-
-    // ✅ UPDATE CHILD (PUT)
-    @PutMapping("/{id}")
-    public ResponseEntity<Child> updateChild(@PathVariable Long id, @RequestBody ChildDTO childDTO) {
         try {
-            Child childDetails = new Child();
-            childDetails.setId(id); // Set the ID for update
-            childDetails.setName(childDTO.getName());
-            childDetails.setBirthCNo(childDTO.getBirthCNo());
-            childDetails.setDob(childDTO.getDob());
-            childDetails.setGender(childDTO.getGender());
-            childDetails.setBloodGroup(childDTO.getBloodGroup());
-            childDetails.setAllergies(childDTO.getAllergies());
-            childDetails.setAge(childDTO.getAge());
-            childDetails.setWeight(childDTO.getWeight());
-            childDetails.setHeight(childDTO.getHeight());
-            childDetails.setAdditionalDetails(childDTO.getAdditionalDetails());
-
-            // Optionally update parent if parentId is provided
-            if (childDTO.getParentId() != null) {
-                Parent parent = parentRepository.findById(childDTO.getParentId())
-                        .orElseThrow(() -> new IllegalArgumentException("Parent not found"));
-                childDetails.setParent(parent);
-            }
-
-            Child updatedChild = childService.updateChild(id, childDetails);
-            return ResponseEntity.ok(updatedChild);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(404).body(null);
+            Child savedChild = childService.saveChild(child);
+            return ResponseEntity.ok(mapToDTO(savedChild));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Error saving child: " + e.getMessage());
         }
     }
 
-    // ✅ DELETE CHILD (DELETE)
+    // GET ALL CHILDREN (GET)
+    @GetMapping
+    public ResponseEntity<List<ChildDTO>> getAllChildren() {
+        try {
+            List<ChildDTO> childDTOs = childService.getAllChildren()
+                    .stream()
+                    .map(this::mapToDTO)
+                    .toList();
+            return ResponseEntity.ok(childDTOs);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(null);
+        }
+    }
+
+    // GET CHILD BY ID (GET)
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getChildById(@PathVariable Long id) {
+        try {
+            Child child = childService.getChildById(id);
+            if (child == null) {
+                return ResponseEntity.status(404).body("Child not found with ID: " + id);
+            }
+            return ResponseEntity.ok(mapToDTO(child));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Error retrieving child: " + e.getMessage());
+        }
+    }
+
+    // UPDATE CHILD (PUT)
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateChild(@PathVariable Long id, @RequestBody ChildDTO childDTO) {
+        try {
+            if (childDTO.getParentId() == null) {
+                return ResponseEntity.badRequest().body("Parent ID is required.");
+            }
+
+            Parent parent = parentRepository.findById(childDTO.getParentId())
+                    .orElseThrow(() -> new IllegalArgumentException("Parent not found with ID: " + childDTO.getParentId()));
+
+            Child childDetails = mapToEntity(childDTO);
+            childDetails.setId(id);
+            childDetails.setParent(parent);
+
+            Child updatedChild = childService.updateChild(id, childDetails);
+            return ResponseEntity.ok(mapToDTO(updatedChild));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(404).body(e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Error updating child: " + e.getMessage());
+        }
+    }
+
+    // DELETE CHILD (DELETE)
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteChild(@PathVariable Long id) {
         try {
@@ -113,6 +109,43 @@ public class ChildController_D {
             return ResponseEntity.ok("Child with ID " + id + " has been deleted.");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(404).body("Child with ID " + id + " not found");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Error deleting child: " + e.getMessage());
         }
+    }
+
+    // HELPER METHODS
+
+    private Child mapToEntity(ChildDTO dto) {
+        Child child = new Child();
+        child.setName(dto.getName());
+        child.setBirthCNo(dto.getBirthCNo());
+        child.setDob(dto.getDob());
+        child.setGender(dto.getGender());
+        child.setBloodGroup(dto.getBloodGroup());
+        child.setAllergies(dto.getAllergies());
+        child.setAge(dto.getAge());
+        child.setWeight(dto.getWeight());
+        child.setHeight(dto.getHeight());
+        child.setAdditionalDetails(dto.getAdditionalDetails());
+        return child;
+    }
+
+    private ChildDTO mapToDTO(Child child) {
+        ChildDTO dto = new ChildDTO();
+        dto.setId(child.getId());
+        dto.setName(child.getName());
+        dto.setBirthCNo(child.getBirthCNo());
+        dto.setDob(child.getDob());
+        dto.setGender(child.getGender());
+        dto.setBloodGroup(child.getBloodGroup());
+        dto.setAllergies(child.getAllergies());
+        dto.setAge(child.getAge());
+        dto.setWeight(child.getWeight());
+        dto.setHeight(child.getHeight());
+        dto.setAdditionalDetails(child.getAdditionalDetails());
+        dto.setParentId(child.getParent().getId());
+        return dto;
     }
 }

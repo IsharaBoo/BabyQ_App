@@ -18,6 +18,7 @@ public class Doctor {
     private String affiliatedHospital;
     private String workplaceAddress;
     private String position;
+    private String documentUrl;
 
     // Getters and Setters
     public Long getId() { return id; }
@@ -52,4 +53,7 @@ public class Doctor {
 
     public String getPosition() { return position; }
     public void setPosition(String position) { this.position = position; }
+
+    public String getDocumentUrl() { return documentUrl; }
+    public void setDocumentUrl(String documentUrl) { this.documentUrl = documentUrl; }
 }

@@ -1,11 +1,12 @@
 package com.example.babyQ_backend.model;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
 
 @Entity
+//@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class Child {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -16,7 +17,7 @@ public class Child {
     private String gender;
     private String bloodGroup;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd") // Ensures correct JSON parsing
-    private LocalDate dob;  // ✅ Ensure it's LocalDate
+    private LocalDate dob;  // Local date
 
     private String allergies;
     private int age;
@@ -26,6 +27,7 @@ public class Child {
 
     @ManyToOne
     @JoinColumn(name = "parent_id")
+    @JsonBackReference // Back reference to avoid recursion
     private Parent parent;
 
     // Getters and Setters

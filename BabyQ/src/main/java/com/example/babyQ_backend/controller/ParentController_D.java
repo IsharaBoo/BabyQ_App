@@ -1,44 +1,76 @@
 package com.example.babyQ_backend.controller;
 
+import com.example.babyQ_backend.dto.ChildDTO;
 import com.example.babyQ_backend.dto.ParentDTO;
 import com.example.babyQ_backend.model.Parent;
+import com.example.babyQ_backend.model.Child;
 import com.example.babyQ_backend.service.ParentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/parents")
+@CrossOrigin(origins = {"http://localhost:8081", "*"})
 public class ParentController_D {
     @Autowired
     private ParentService parentService;
 
-    // POST endpoint to register a parent
     @PostMapping
-    public Parent registerParent(@RequestBody ParentDTO parentDTO) {
-        // Convert ParentDTO to Parent entity
-        Parent parent = new Parent();
-        parent.setFullName(parentDTO.getFullName());
-        parent.setNicNumber(parentDTO.getNicNumber());
-        parent.setDateOfBirth(parentDTO.getDateOfBirth());
-        parent.setAddress(parentDTO.getAddress());
-        parent.setPhoneNumber(parentDTO.getPhoneNumber());
-        parent.setEmail(parentDTO.getEmail());
-        parent.setPassword(parentDTO.getPassword());
-
-        // Call the service to register the parent
-        return parentService.registerParent(parent);
+    public ResponseEntity<ParentDTO> registerParent(@RequestBody ParentDTO parentDTO) {
+        try {
+            Parent parent = mapToEntity(parentDTO);
+            Parent registeredParent = parentService.registerParent(parent);
+            return ResponseEntity.ok(mapToDTO(registeredParent));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(null); // Could improve with specific error message
+        }
     }
 
-    // GET endpoint to retrieve all parents
+    @PostMapping("/login")
+    public ResponseEntity<String> loginParent(@RequestBody LoginDTO loginDTO) {
+        try {
+            Optional<Parent> parentOpt = parentService.findByEmail(loginDTO.getEmail());
+            if (parentOpt.isEmpty()) {
+                return ResponseEntity.status(401).body("Invalid email");
+            }
+            Parent parent = parentOpt.get();
+            if (!parent.getPassword().equals(loginDTO.getPassword())) {
+                return ResponseEntity.status(401).body("Invalid password");
+            }
+            return ResponseEntity.ok("Login successful");
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Server error: " + e.getMessage());
+        }
+    }
+
     @GetMapping
-    public List<Parent> getAllParents() {
-        return parentService.getAllParents();
+    public ResponseEntity<List<ParentDTO>> getAllParents() {
+        try {
+            List<Parent> parents = parentService.getAllParents();
+            List<ParentDTO> parentDTOs = parents.stream().map(this::mapToDTO).toList();
+            return ResponseEntity.ok(parentDTOs);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(null);
+        }
     }
 
-    // DELETE endpoint to remove a parent by ID
+    @GetMapping("/{id}")
+    public ResponseEntity<ParentDTO> getParentById(@PathVariable Long id) {
+        try {
+            Parent parent = parentService.getParentById(id);
+            if (parent == null) {
+                return ResponseEntity.status(404).body(null);
+            }
+            return ResponseEntity.ok(mapToDTO(parent));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(null);
+        }
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteParent(@PathVariable Long id) {
         try {
@@ -51,28 +83,85 @@ public class ParentController_D {
         }
     }
 
-    // PUT endpoint to update a parent by ID
     @PutMapping("/{id}")
-    public ResponseEntity<Parent> updateParent(@PathVariable Long id, @RequestBody ParentDTO parentDTO) {
+    public ResponseEntity<ParentDTO> updateParent(@PathVariable Long id, @RequestBody ParentDTO parentDTO) {
         try {
-            // Convert ParentDTO to Parent entity
-            Parent parent = new Parent();
-            parent.setId(id); // Set the ID from the path variable
-            parent.setFullName(parentDTO.getFullName());
-            parent.setNicNumber(parentDTO.getNicNumber());
-            parent.setDateOfBirth(parentDTO.getDateOfBirth());
-            parent.setAddress(parentDTO.getAddress());
-            parent.setPhoneNumber(parentDTO.getPhoneNumber());
-            parent.setEmail(parentDTO.getEmail());
-            parent.setPassword(parentDTO.getPassword());
-
-            // Call the service to update the parent
+            Parent parent = mapToEntity(parentDTO);
+            parent.setId(id);
             Parent updatedParent = parentService.updateParent(parent);
-            return ResponseEntity.ok(updatedParent);
+            return ResponseEntity.ok(mapToDTO(updatedParent));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(404).body(null); // Parent not found
+            return ResponseEntity.status(404).body(null);
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(null); // Other errors
+            return ResponseEntity.status(500).body(null);
+        }
+    }
+
+    private ParentDTO mapToDTO(Parent parent) {
+        ParentDTO dto = new ParentDTO();
+        dto.setId(parent.getId());
+        dto.setFullName(parent.getFullName());
+        dto.setNicNumber(parent.getNicNumber());
+        dto.setDateOfBirth(parent.getDateOfBirth());
+        dto.setAddress(parent.getAddress());
+        dto.setPhoneNumber(parent.getPhoneNumber());
+        dto.setEmail(parent.getEmail());
+        dto.setPassword(parent.getPassword());
+
+        if (parent.getChildren() != null) {
+            dto.setChildren(parent.getChildren().stream().map(child -> {
+                ChildDTO childDTO = new ChildDTO();
+                childDTO.setId(child.getId());
+                childDTO.setName(child.getName());
+                childDTO.setDob(child.getDob());
+                childDTO.setBirthCNo(child.getBirthCNo());
+                childDTO.setGender(child.getGender());
+                childDTO.setAge(child.getAge());
+                childDTO.setWeight(child.getWeight());
+                childDTO.setHeight(child.getHeight());
+                childDTO.setBloodGroup(child.getBloodGroup());
+                childDTO.setAllergies(child.getAllergies());
+                childDTO.setAdditionalDetails(child.getAdditionalDetails());
+                childDTO.setParentId(parent.getId());
+                return childDTO;
+            }).toList());
+        } else {
+            dto.setChildren(List.of());
+        }
+        return dto;
+    }
+
+    private Parent mapToEntity(ParentDTO dto) {
+        Parent parent = new Parent();
+        parent.setFullName(dto.getFullName());
+        parent.setNicNumber(dto.getNicNumber());
+        parent.setDateOfBirth(dto.getDateOfBirth());
+        parent.setAddress(dto.getAddress());
+        parent.setPhoneNumber(dto.getPhoneNumber());
+        parent.setEmail(dto.getEmail());
+        parent.setPassword(dto.getPassword());
+        return parent;
+    }
+
+    // Login DTO
+    public static class LoginDTO {
+        private String email;
+        private String password;
+
+        public String getEmail() {
+            return email;
+        }
+
+        public void setEmail(String email) {
+            this.email = email;
+        }
+
+        public String getPassword() {
+            return password;
+        }
+
+        public void setPassword(String password) {
+            this.password = password;
         }
     }
 }
