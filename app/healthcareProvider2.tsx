@@ -6,7 +6,8 @@ import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import axios from 'axios';
 
-const backendUrl = 'http://192.168.1.5:8082';
+const backendUrl = 'http://192.168.8.119:8082';
+//const backendUrl = 'https://47b8-2402-4000-b2c0-bf2d-1d0e-2607-fd8e-685a.ngrok-free.app';
 
 export default function HealthcareProviderRegistration2() {
   const router = useRouter();

@@ -11,17 +11,33 @@ import {
   Linking,
   Animated,
   Dimensions,
+  Platform,
+  Alert,
 } from 'react-native';
 import { FontAwesome, FontAwesome5 } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { BlurView } from 'expo-blur';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
 
 const { width } = Dimensions.get('window');
 
+const getBackendUrl = () => {
+  if (Platform.OS === 'web') {
+    return 'http://192.168.8.119:8082';
+  } else if (Platform.OS === 'android') {
+    return 'http://10.0.2.2:8082'; // Emulator
+  } else {
+    return 'http://192.168.8.119:8082'; // iOS and physical devices
+  }
+};
+
+const backendUrl = getBackendUrl();
+
 export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]); // State for search results
   const [greeting, setGreeting] = useState('Good morning');
   const [user, setUser] = useState<any>(null);
   const router = useRouter();
@@ -43,13 +59,11 @@ export default function HomePage() {
 
     checkLoginState();
 
-    // Set greeting based on time of day
     const hours = new Date().getHours();
     if (hours < 12) setGreeting('Good Morning');
     else if (hours < 18) setGreeting('Good Afternoon');
     else setGreeting('Good Evening');
 
-    // Animate components on load
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
@@ -64,9 +78,28 @@ export default function HomePage() {
     ]).start();
   }, []);
 
-  const handleSearch = () => {
-    if (searchQuery.trim()) {
-      router.push(`/doctorSearchResults?query=${encodeURIComponent(searchQuery)}`);
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) {
+      Alert.alert('Error', 'Please enter a search term');
+      return;
+    }
+
+    try {
+      console.log('Searching for:', searchQuery, 'at:', `${backendUrl}/api/doctors/search`);
+      const response = await axios.get(`${backendUrl}/api/doctors/search`, {
+        params: { query: searchQuery },
+        timeout: 5000,
+      });
+      console.log('Search results:', response.data);
+      setSearchResults(response.data); // Store results in state
+    } catch (error: any) {
+      console.error('Search failed:', {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data,
+      });
+      Alert.alert('Search Failed', 'Unable to fetch results. Please try again.');
+      setSearchResults([]); // Clear results on failure
     }
   };
 
@@ -89,6 +122,15 @@ export default function HomePage() {
     }
   };
 
+  const renderDoctorResult = ({ item }: { item: any }) => (
+    <View style={styles.doctorCard}>
+      <Text style={styles.doctorName}>{`${item.firstName} ${item.lastName}`}</Text>
+      <Text style={styles.doctorSpecialty}>{item.position}</Text>
+      <Text style={styles.doctorHospital}>{item.affiliatedHospital}</Text>
+      <Text style={styles.doctorPhone}>{item.phoneNumber}</Text>
+    </View>
+  );
+
   const categories = [
     { id: '1', title: 'General Physician', icon: 'user-md', color: '#4E7CFE' },
     { id: '2', title: 'Pediatrician', icon: 'child', color: '#FE7C7C' },
@@ -99,11 +141,11 @@ export default function HomePage() {
   ];
 
   const ads = [
-    { id: '1', image: require('../assets/images/ad1.png'), title: 'Health Insurance Plans' },
+    { id: '5', image: require('../assets/images/ad5.png'), title: 'Child Healthcare Packages' },
     { id: '2', image: require('../assets/images/ad2.png'), title: 'Annual Checkup Discount' },
+    { id: '1', image: require('../assets/images/add1.png'), title: 'Health Insurance Plans' },
     { id: '3', image: require('../assets/images/ad3.png'), title: 'Mental Health Services' },
-    { id: '4', image: require('../assets/images/ad4.png'), title: 'New Clinic Opening' },
-    { id: '5', image: require('../assets/images/ad6.jpg'), title: 'Family Healthcare Packages' },
+    { id: '4', image: require('../assets/images/ad1.png'), title: 'Offers' },
   ];
 
   const news = [
@@ -123,11 +165,9 @@ export default function HomePage() {
     return <Text>Loading...</Text>;
   }
 
- 
   return (
     <View style={styles.container}>
       <LinearGradient colors={['#E8F0FF', '#FFFFFF']} style={styles.gradientBackground} />
-
       <Animated.ScrollView
         style={styles.contentContainer}
         showsVerticalScrollIndicator={false}
@@ -144,12 +184,12 @@ export default function HomePage() {
         >
           <FontAwesome name="user-circle" size={28} color="#2D4BC2" />
           <View>
-        <Text style={styles.greeting}>
-          {greeting}, {user.name.split(' ')[0]}!
-        </Text>
-        <Text style={styles.subGreeting}>How are you feeling today?</Text>
-      </View>
-    </Animated.View>
+            <Text style={styles.greeting}>
+              {greeting}, {user.name.split(' ')[0]}!
+            </Text>
+            <Text style={styles.subGreeting}>How are you feeling today?</Text>
+          </View>
+        </Animated.View>
 
         <Animated.View
           style={[
@@ -165,6 +205,7 @@ export default function HomePage() {
               placeholderTextColor="#999"
               value={searchQuery}
               onChangeText={setSearchQuery}
+              onSubmitEditing={handleSearch}
             />
           </View>
           <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
@@ -178,6 +219,23 @@ export default function HomePage() {
             </LinearGradient>
           </TouchableOpacity>
         </Animated.View>
+
+        {/* Search Results Section */}
+        {searchResults.length > 0 ? (
+          <View style={styles.sectionContainer}>
+            <Text style={styles.sectionTitle}>Search Results for "{searchQuery}"</Text>
+            <FlatList
+              data={searchResults}
+              keyExtractor={(item) => item.id.toString()}
+              renderItem={renderDoctorResult}
+              scrollEnabled={false} // Disable scrolling within FlatList to use parent ScrollView
+            />
+          </View>
+        ) : searchQuery.trim() && searchResults.length === 0 ? (
+          <View style={styles.sectionContainer}>
+            <Text style={styles.noResults}>No doctors found for "{searchQuery}".</Text>
+          </View>
+        ) : null}
 
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>Featured Services</Text>
@@ -261,39 +319,29 @@ export default function HomePage() {
 
             <View style={styles.profileContent}>
               <View style={styles.profileItem}>
-                <Text style={styles.profileLabel}>Name</Text>
+                <Text style={styles.profileLabel}>Name:</Text>
                 <Text style={styles.profileValue}>{user.name}</Text>
               </View>
               <View style={styles.profileItem}>
-                <Text style={styles.profileLabel}>Email</Text>
+                <Text style={styles.profileLabel}>Email:</Text>
                 <Text style={styles.profileValue}>{user.email}</Text>
               </View>
               <View style={styles.profileItem}>
-                <Text style={styles.profileLabel}>Role</Text>
+                <Text style={styles.profileLabel}>Role:</Text>
                 <Text style={styles.profileValue}>{user.role}</Text>
               </View>
               <View style={styles.profileItem}>
-                <Text style={styles.profileLabel}>Registered On</Text>
+  <Text style={styles.profileLabel}>Children:</Text>
+  <Text style={styles.profileValue}>{user.childName}</Text>
+</View>
+              <View style={styles.profileItem}>
+                <Text style={styles.profileLabel}>Registered On:</Text>
                 <Text style={styles.profileValue}>{user.registrationDate}</Text>
               </View>
               {user.nicNumber && (
                 <View style={styles.profileItem}>
-                  <Text style={styles.profileLabel}>NIC Number</Text>
+                  <Text style={styles.profileLabel}>NIC Number:</Text>
                   <Text style={styles.profileValue}>{user.nicNumber}</Text>
-                </View>
-              )}
-              {user.dob && (
-                <View style={styles.profileItem}>
-                  <Text style={styles.profileLabel}>Date of Birth</Text>
-                  <Text style={styles.profileValue}>
-                    {user.dob.month}/{user.dob.day}/{user.dob.year}
-                  </Text>
-                </View>
-              )}
-              {user.address && (
-                <View style={styles.profileItem}>
-                  <Text style={styles.profileLabel}>Address</Text>
-                  <Text style={styles.profileValue}>{user.address}</Text>
                 </View>
               )}
               {user.phoneNumber && (
@@ -442,6 +490,41 @@ const styles = StyleSheet.create({
     color: '#2D4BC2',
     marginBottom: 15,
   },
+  doctorCard: {
+    backgroundColor: '#FFF',
+    padding: 15,
+    borderRadius: 10,
+    marginBottom: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  doctorName: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#2D4BC2',
+  },
+  doctorSpecialty: {
+    fontSize: 14,
+    marginTop: 2,
+    color: '#666',
+  },
+  doctorHospital: {
+    fontSize: 14,
+    color: '#888',
+  },
+  doctorPhone: {
+    fontSize: 14,
+    color: '#888',
+  },
+  noResults: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 15,
+  },
   adCard: {
     width: 180,
     height: 120,
@@ -456,7 +539,7 @@ const styles = StyleSheet.create({
   },
   adImage: {
     width: '100%',
-    height: '100%',
+    height: '150%',
   },
   adOverlay: {
     position: 'absolute',

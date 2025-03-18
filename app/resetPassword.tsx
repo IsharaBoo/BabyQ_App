@@ -1,50 +1,36 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { auth } from './firebase';
-import { sendPasswordResetEmail } from 'firebase/auth';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
+
+type RootStackParamList = {
+  ResetPW: undefined;
+  // Add other routes here if needed
+};
 
 export default function ResetPasswordScreen() {
-  const router = useRouter();
-  const [email, setEmail] = useState<string>('');
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const [email, setEmail] = useState('');
 
-  const handleReset = async () => {
-    if (!email) {
-      Alert.alert('Error', 'Please enter your email address');
-      return;
-    }
-
-    if (!/\S+@\S+\.\S+/.test(email)) {
-      Alert.alert('Error', 'Please enter a valid email address');
-      return;
-    }
-
-    try {
-      console.log('Sending password reset email to:', email);
-      await sendPasswordResetEmail(auth, email, {
-        url: 'https://babyq-frontauth.web.app/reset', // Use your allowlisted domain
-        handleCodeInApp: true,
-      });
-      Alert.alert('Success', 'A password reset link has been sent to your email.');
-      router.push('/login');
-    } catch (error: any) {
-      console.error('Password reset error:', error);
-      Alert.alert('Error', error.message || 'Failed to send reset email.');
-    }
+  const handleReset = () => {
+    // Add your reset logic here (e.g., send a confirmation code to the email)
+    navigation.navigate('ResetPW'); // Navigate to the Reset Password Confirmation Screen
   };
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-        <Ionicons name="arrow-back" size={28} color="#2D4BC2" />
+      {/* Back Button */}
+      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <Ionicons name="chevron-back" size={24} color="black" />
       </TouchableOpacity>
 
+      {/* Title & Description */}
       <Text style={styles.title}>Reset password</Text>
       <Text style={styles.description}>
         Enter the email address you used when you signed up for your account, and we will email a link to reset your password.
       </Text>
 
+      {/* Email Input */}
       <TextInput
         style={styles.input}
         placeholder="Email address"
@@ -55,11 +41,13 @@ export default function ResetPasswordScreen() {
         onChangeText={setEmail}
       />
 
+      {/* Reset Button */}
       <TouchableOpacity style={styles.resetButton} onPress={handleReset}>
         <Text style={styles.resetButtonText}>Reset</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.backButtonSecondary} onPress={() => router.back()}>
+      {/* Back Button */}
+      <TouchableOpacity style={styles.backButtonSecondary} onPress={() => navigation.goBack()}>
         <Text style={styles.backButtonText}>Back</Text>
       </TouchableOpacity>
     </View>
@@ -75,22 +63,19 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: 'absolute',
-    top: 60,
+    top: 40,
     left: 20,
-    zIndex: 1,
   },
   title: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: 'bold',
-    color: '#2D4BC2',
-    textAlign: 'left',
-    marginLeft: 45,
-    marginTop: 15,
+    color: '#000',
+    marginTop: 50,
   },
   description: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#555',
-    marginTop: 40,
+    marginTop: 20,
     marginBottom: 30,
   },
   input: {
@@ -102,33 +87,26 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   resetButton: {
-    width: '90%',
-    borderRadius: 20,
     backgroundColor: '#2D4BC2',
-    paddingVertical: 15,
+    paddingVertical: 12,
     alignItems: 'center',
-    elevation: 5,
-    marginLeft: 20,
+    borderRadius: 8,
+    marginBottom: 10,
   },
   resetButtonText: {
-    color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '700',
-    letterSpacing: 1,
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   backButtonSecondary: {
-    width: '90%',
-    borderRadius: 20,
-    marginTop: 20,
     backgroundColor: '#A9B8E8',
     paddingVertical: 12,
     alignItems: 'center',
-    marginLeft: 20,
+    borderRadius: 8,
   },
   backButtonText: {
-    color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '700',
-    letterSpacing: 1,
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });

@@ -55,10 +55,7 @@ export default function RootLayout() {
       <Stack.Screen name="doctorCategory" options={{ headerShown: false }} />
       <Stack.Screen name="doctorProfile" options={{ headerShown: false }} />
       <Stack.Screen name="doctorSearchResults" options={{ headerShown: false }} />
-      <Stack.Screen name="DoctorHomePage" options={{ headerShown: false }} />
-      <Stack.Screen name="DoctorProfile" options={{ headerShown: false }} />
-      <Stack.Screen name="DoctorProfileEdit" options={{ headerShown: false }} />
-      <Stack.Screen name="DoctorProfileEdit2" options={{ headerShown: false }} />
+
     </Stack>
   );
 }

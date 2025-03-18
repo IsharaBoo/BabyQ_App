@@ -37,33 +37,53 @@ export default function ParentRegistration2() {
   const [additionalInfo, setAdditionalInfo] = useState<string>('');
   const [password, setPassword] = useState<string>('');
 
-  const backendUrl = 'http://192.168.1.5:8082'; // Backend URL
+  const backendUrl = 'http://192.168.8.119:8082';
+  //const backendUrl = 'https://47b8-2402-4000-b2c0-bf2d-1d0e-2607-fd8e-685a.ngrok-free.app'; // Backend URL
 
   const handleSignUp = async () => {
     setIsLoading(true);
-
+  
+    // Required field validation
     if (!childName || !birthCertNumber || !childDob.day || !childDob.month || !childDob.year || !gender || !password) {
       Alert.alert('Error', 'Please fill in all required fields');
       setIsLoading(false);
       return;
     }
-
+  
+    // Password length validation
     if (password.length < 6) {
       Alert.alert('Error', 'Password must be at least 6 characters long');
       setIsLoading(false);
       return;
     }
-
+  
+    // Child DOB validation
     const childDobString = `${childDob.year}-${childDob.month.padStart(2, '0')}-${childDob.day.padStart(2, '0')}`;
     const childDobDate = new Date(childDobString);
-    if (isNaN(childDobDate.getTime()) || childDobDate > new Date()) {
+    const isValidDate = !isNaN(childDobDate.getTime()) && 
+      parseInt(childDob.month) <= 12 && 
+      parseInt(childDob.day) <= new Date(parseInt(childDob.year), parseInt(childDob.month), 0).getDate() &&
+      childDobDate <= new Date();
+    if (!isValidDate) {
       Alert.alert('Error', 'Please enter a valid child date of birth');
       setIsLoading(false);
       return;
     }
-
+  
+    // Numeric field validation
+    if (weight && isNaN(parseFloat(weight))) {
+      Alert.alert('Error', 'Weight must be a valid number');
+      setIsLoading(false);
+      return;
+    }
+    if (height && isNaN(parseFloat(height))) {
+      Alert.alert('Error', 'Height must be a valid number');
+      setIsLoading(false);
+      return;
+    }
+  
     try {
-      // Step 1: Register the Parent
+      // Register Parent
       const parentPayload = {
         fullName: parentData.fullName,
         nicNumber: parentData.nicNumber,
@@ -73,13 +93,15 @@ export default function ParentRegistration2() {
         email: parentData.email,
         password,
       };
-
       console.log('Registering parent:', parentPayload);
-      const parentResponse = await axios.post(`${backendUrl}/api/parents`, parentPayload);
-      const parentId = parentResponse.data.id;
+      const parentResponse = await axios.post(`${backendUrl}/api/parents`, parentPayload, { timeout: 10000 });
+      const parentId = parentResponse.data.id || parentResponse.data.parent?.id;
+      if (!parentId) {
+        throw new Error('Parent ID not returned from server');
+      }
       console.log('Parent registered with ID:', parentId);
-
-      // Step 2: Register the Child
+  
+      // Register Child
       const childPayload = {
         name: childName,
         birthCNo: birthCertNumber,
@@ -93,21 +115,16 @@ export default function ParentRegistration2() {
         additionalDetails: additionalInfo || null,
         parentId,
       };
-
       console.log('Registering child:', childPayload);
-      await axios.post(`${backendUrl}/api/children`, childPayload);
+      await axios.post(`${backendUrl}/api/children`, childPayload, { timeout: 10000 });
       console.log('Child registered successfully');
-
-      // Step 3: Save user data to AsyncStorage for HomePage
+  
+      // Save to AsyncStorage
       const userData = {
         name: parentData.fullName,
         email: parentData.email,
         role: 'Parent/Guardian',
-        registrationDate: new Date().toLocaleDateString('en-US', {
-          day: '2-digit',
-          month: 'short',
-          year: 'numeric',
-        }),
+        registrationDate: new Date().toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }),
         nicNumber: parentData.nicNumber,
         dob: {
           month: parentData.dateOfBirth.slice(5, 7),
@@ -116,20 +133,18 @@ export default function ParentRegistration2() {
         },
         address: parentData.address,
         phoneNumber: parentData.phoneNumber,
+        childName: childName, 
       };
       await AsyncStorage.setItem('userData', JSON.stringify(userData));
       console.log('User data saved to AsyncStorage:', userData);
-
-      // Step 4: Navigate to /home
+  
+      // Navigate
       Alert.alert(
         'Success',
         'Parent and child registered successfully!',
         [{
           text: 'OK',
-          onPress: () => {
-            console.log('Navigating to /home after signup');
-            router.push('/home');
-          },
+          onPress: () => setTimeout(() => router.replace('/home'), 50),
         }],
         { cancelable: false }
       );
@@ -137,13 +152,15 @@ export default function ParentRegistration2() {
       console.error('Signup error:', error.response?.data || error.message);
       let errorMessage = 'An error occurred during registration';
       if (error.response) {
+        const errorData = error.response.data;
+        errorMessage = typeof errorData === 'string' ? errorData : errorData?.message || JSON.stringify(errorData);
         if (error.response.status === 400) {
-          errorMessage = 'Invalid data provided';
+          errorMessage = errorMessage || 'Invalid data provided';
         } else if (error.response.status === 500) {
-          errorMessage = 'Server error, please try again later';
-        } else {
-          errorMessage = error.response.data || 'Registration failed';
+          errorMessage = errorMessage || 'Server error, please try again later';
         }
+      } else if (error.request) {
+        errorMessage = 'Network error: Unable to reach the server';
       }
       Alert.alert('Registration Failed', errorMessage);
     } finally {

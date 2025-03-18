@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
-const backendUrl = 'http://192.168.1.5:8082';
+const backendUrl = 'http://192.168.8.119:8082';
 
 export default function HealthcareProviderRegistration3() {
   const router = useRouter();
@@ -17,17 +17,17 @@ export default function HealthcareProviderRegistration3() {
   const [isUploading, setIsUploading] = useState(false);
 
   const providerData = {
-    firstName: params.firstName as string,
-    lastName: params.lastName as string,
-    nicNumber: params.nicNumber as string,
-    email: params.email as string,
-    password: params.password as string,
-    phoneNumber: params.phoneNumber as string,
-    medicalLicenseNumber: params.medicalLicenseNumber as string,
-    affiliatedHospital: params.affiliatedHospital as string,
-    workplaceAddress: params.workplaceAddress as string,
-    position: params.position as string,
-    photoUrl: params.photoUrl as string,
+    firstName: (params.firstName as string) || '',
+    lastName: (params.lastName as string) || '',
+    nicNumber: (params.nicNumber as string) || '',
+    email: (params.email as string) || '',
+    password: (params.password as string) || '',
+    phoneNumber: (params.phoneNumber as string) || '',
+    medicalLicenseNumber: (params.medicalLicenseNumber as string) || '',
+    affiliatedHospital: (params.affiliatedHospital as string) || '',
+    workplaceAddress: (params.workplaceAddress as string) || '',
+    position: (params.position as string) || '',
+    photoUrl: (params.photoUrl as string) || null,
   };
 
   const handleUpload = async () => {
@@ -41,8 +41,8 @@ export default function HealthcareProviderRegistration3() {
         const { name, uri, mimeType } = result.assets[0];
         setFileName(name);
         setFileUri(uri);
-        setFileType(mimeType || 'application/octet-stream'); // Set correct type
-        console.log('File selected:', name);
+        setFileType(mimeType || 'application/octet-stream');
+        console.log('File selected:', { name, uri, mimeType });
       }
     } catch (error) {
       console.error('Error picking document:', error);
@@ -51,6 +51,11 @@ export default function HealthcareProviderRegistration3() {
   };
 
   const handleContinue = async () => {
+    if (!providerData.email || !providerData.password) {
+      Alert.alert('Error', 'Email and password are required');
+      return;
+    }
+
     setIsUploading(true);
 
     try {
@@ -63,17 +68,12 @@ export default function HealthcareProviderRegistration3() {
           name: fileName || 'document',
           type: fileType || 'application/octet-stream',
         } as any);
-        formData.append('email', providerData.email);
 
-        try {
-          const uploadResponse = await axios.post(`${backendUrl}/api/upload`, formData, {
-            headers: { 'Content-Type': 'multipart/form-data' },
-          });
-          documentUrl = uploadResponse.data.url;
-          console.log('Document uploaded:', documentUrl);
-        } catch (uploadError) {
-          console.warn('Document upload failed:', uploadError);
-        }
+        const uploadResponse = await axios.post(`${backendUrl}/api/upload`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        documentUrl = uploadResponse.data.fileUrl;
+        console.log('Document uploaded:', documentUrl);
       }
 
       const providerPayload = {
@@ -98,23 +98,32 @@ export default function HealthcareProviderRegistration3() {
         name: `${registeredDoctor.firstName} ${registeredDoctor.lastName}`,
         email: registeredDoctor.professionalEmail,
         role: 'Healthcare Provider',
-        registrationDate: new Date().toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }),
+        registrationDate: registeredDoctor.registrationDate
+          ? new Date(registeredDoctor.registrationDate).toLocaleDateString('en-US', {
+              day: '2-digit',
+              month: 'short',
+              year: 'numeric',
+            })
+          : 'Unknown',
         nicNumber: registeredDoctor.nicNumber,
         phoneNumber: registeredDoctor.phoneNumber,
         medicalLicenseNumber: registeredDoctor.medicalLicenseNumber,
         affiliatedHospital: registeredDoctor.affiliatedHospital,
         workplaceAddress: registeredDoctor.workplaceAddress,
         position: registeredDoctor.position,
-        photoUrl: providerData.photoUrl || null,
+        photoUrl: documentUrl || null,
       };
-      await AsyncStorage.setItem('userData', JSON.stringify(userData));
 
-      Alert.alert('Success', 'Healthcare provider registered successfully!', [
-        { text: 'OK', onPress: () => router.push('/healthcareProvider4') },
-      ]);
+      await AsyncStorage.setItem('userData', JSON.stringify(userData));
+      console.log('User data saved:', userData);
+
+      router.push({
+        pathname: '/healthcareProvider4',
+        params: { ...userData }, // Pass registered data to next screen
+      });
     } catch (error: any) {
-      console.error('Error:', error.response?.data || error.message);
-      Alert.alert('Registration Failed', error.response?.data?.message || 'An error occurred');
+      console.error('Registration error:', error.response?.data || error.message);
+      Alert.alert('Registration Failed', error.response?.data?.message || 'An error occurred during registration');
     } finally {
       setIsUploading(false);
     }
@@ -165,6 +174,7 @@ export default function HealthcareProviderRegistration3() {
   );
 }
 
+// Styles remain unchanged
 const styles = StyleSheet.create({
   container: {
     flex: 1,
