@@ -2,6 +2,8 @@ package com.example.babyQ_backend.model;
 
 import jakarta.persistence.*;
 
+import java.time.LocalDate;
+
 @Entity
 public class Doctor {
     @Id
@@ -19,6 +21,7 @@ public class Doctor {
     private String workplaceAddress;
     private String position;
     private String documentUrl;
+    private LocalDate registrationDate;
 
     // Getters and Setters
     public Long getId() { return id; }
@@ -56,4 +59,7 @@ public class Doctor {
 
     public String getDocumentUrl() { return documentUrl; }
     public void setDocumentUrl(String documentUrl) { this.documentUrl = documentUrl; }
+
+    public LocalDate getRegistrationDate() { return registrationDate; }
+    public void setRegistrationDate(LocalDate registrationDate) { this.registrationDate = registrationDate; }
 }

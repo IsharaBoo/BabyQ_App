@@ -3,7 +3,6 @@ package com.example.babyQ_backend.controller;
 import com.example.babyQ_backend.dto.ChildDTO;
 import com.example.babyQ_backend.dto.ParentDTO;
 import com.example.babyQ_backend.model.Parent;
-import com.example.babyQ_backend.model.Child;
 import com.example.babyQ_backend.service.ParentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -26,24 +25,24 @@ public class ParentController_D {
             Parent registeredParent = parentService.registerParent(parent);
             return ResponseEntity.ok(mapToDTO(registeredParent));
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(null); // Could improve with specific error message
+            return ResponseEntity.status(500).body(null);
         }
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> loginParent(@RequestBody LoginDTO loginDTO) {
+    public ResponseEntity<ParentDTO> loginParent(@RequestBody LoginDTO loginDTO) { // Changed return type
         try {
             Optional<Parent> parentOpt = parentService.findByEmail(loginDTO.getEmail());
             if (parentOpt.isEmpty()) {
-                return ResponseEntity.status(401).body("Invalid email");
+                return ResponseEntity.status(401).body(null); // Could return error DTO
             }
             Parent parent = parentOpt.get();
             if (!parent.getPassword().equals(loginDTO.getPassword())) {
-                return ResponseEntity.status(401).body("Invalid password");
+                return ResponseEntity.status(401).body(null);
             }
-            return ResponseEntity.ok("Login successful");
+            return ResponseEntity.ok(mapToDTO(parent)); // Return ParentDTO with child data
         } catch (Exception e) {
-            return ResponseEntity.status(500).body("Server error: " + e.getMessage());
+            return ResponseEntity.status(500).body(null);
         }
     }
 
@@ -108,7 +107,7 @@ public class ParentController_D {
         dto.setEmail(parent.getEmail());
         dto.setPassword(parent.getPassword());
 
-        if (parent.getChildren() != null) {
+        if (parent.getChildren() != null && !parent.getChildren().isEmpty()) {
             dto.setChildren(parent.getChildren().stream().map(child -> {
                 ChildDTO childDTO = new ChildDTO();
                 childDTO.setId(child.getId());
@@ -125,8 +124,10 @@ public class ParentController_D {
                 childDTO.setParentId(parent.getId());
                 return childDTO;
             }).toList());
+            dto.setChildName(parent.getChildren().get(0).getName()); // First child's name
         } else {
             dto.setChildren(List.of());
+            dto.setChildName("No child registered");
         }
         return dto;
     }
@@ -140,28 +141,17 @@ public class ParentController_D {
         parent.setPhoneNumber(dto.getPhoneNumber());
         parent.setEmail(dto.getEmail());
         parent.setPassword(dto.getPassword());
+        parent.setRegistrationDate(dto.getRegistrationDate());
         return parent;
     }
 
-    // Login DTO
     public static class LoginDTO {
         private String email;
         private String password;
 
-        public String getEmail() {
-            return email;
-        }
-
-        public void setEmail(String email) {
-            this.email = email;
-        }
-
-        public String getPassword() {
-            return password;
-        }
-
-        public void setPassword(String password) {
-            this.password = password;
-        }
+        public String getEmail() { return email; }
+        public void setEmail(String email) { this.email = email; }
+        public String getPassword() { return password; }
+        public void setPassword(String password) { this.password = password; }
     }
 }

@@ -6,6 +6,7 @@ import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,6 +17,10 @@ public class ParentServiceImpl implements ParentService {
 
     @Override
     public Parent registerParent(Parent parent) {
+        // Set registration date if not provided
+        if (parent.getRegistrationDate() == null) {
+            parent.setRegistrationDate(LocalDate.now());
+        }
         return parentRepository.save(parent);
     }
 
@@ -65,4 +70,17 @@ public class ParentServiceImpl implements ParentService {
     public Optional<Parent> findByEmail(String email) {
         return parentRepository.findByEmail(email);
     }
+    // Add login method to return Parent object
+    public Parent loginParent(String email, String password) throws Exception {
+        Optional<Parent> parentOpt = parentRepository.findByEmail(email);
+        if (parentOpt.isEmpty()) {
+            throw new Exception("Invalid email");
+        }
+        Parent parent = parentOpt.get();
+        if (!parent.getPassword().equals(password)) {
+            throw new Exception("Invalid password");
+        }
+        return parent;
+    }
+
 }

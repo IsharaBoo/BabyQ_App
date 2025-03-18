@@ -11,4 +11,5 @@ public interface ParentService {
     Parent updateParent(Parent parent) throws IllegalArgumentException; // Throws if not found
     Parent getParentById(Long id); // Returns null if not found, consistent with current usage
     Optional<Parent> findByEmail(String email); // For login
+    Parent loginParent(String email, String password) throws Exception;
 }
