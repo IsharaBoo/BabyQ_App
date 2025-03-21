@@ -37,8 +37,8 @@ export default function ParentRegistration2() {
   const [additionalInfo, setAdditionalInfo] = useState<string>('');
   const [password, setPassword] = useState<string>('');
 
-  const backendUrl = 'http://192.168.8.119:8082';
-  //const backendUrl = 'https://47b8-2402-4000-b2c0-bf2d-1d0e-2607-fd8e-685a.ngrok-free.app'; // Backend URL
+  //const backendUrl = 'http://192.168.8.119:8082';
+  const backendUrl = 'http://10.31.23.48:8082';
 
   const handleSignUp = async () => {
     setIsLoading(true);

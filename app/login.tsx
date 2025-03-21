@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Animated, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Animated, Alert, ActivityIndicator, Platform } from 'react-native';
 import Checkbox from 'expo-checkbox';
 import { FontAwesome, Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -7,9 +7,20 @@ import { LinearGradient } from 'expo-linear-gradient';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Updated to match your backend IP
-const backendUrl = 'http://192.168.8.119:8082';
-// const backendUrl = 'https://47b8-2402-4000-b2c0-bf2d-1d0e-2607-fd8e-685a.ngrok-free.app'; // Use within any network
+// Dynamic backend URL based on platform
+const getBackendUrl = () => {
+  if (Platform.OS === 'web') {
+    return 'http://localhost:8082';
+    //return  'http://10.31.23.48:8082';
+  } else if (Platform.OS === 'android') {
+    return 'http://10.0.2.2:8082'; // Emulator
+  } else {
+    return 'http://192.168.8.119:8082'; // iOS and physical devices
+    //return 'http://10.31.23.48:8082';
+  }
+};
+
+const backendUrl = getBackendUrl();
 
 const LoginPage: React.FC = () => {
   const router = useRouter();
@@ -21,6 +32,7 @@ const LoginPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
+    console.log('Using backend URL:', backendUrl); // Log to verify URL
     const loadCredentials = async () => {
       const storedEmail = await AsyncStorage.getItem('email');
       const storedPassword = await AsyncStorage.getItem('password');
@@ -65,24 +77,20 @@ const LoginPage: React.FC = () => {
       Alert.alert('Error', 'Please enter both email and password');
       return;
     }
-
+  
     setIsLoading(true);
     console.log('Email entered:', email);
-
+  
     try {
-      // Try doctor login first
       console.log('Attempting doctor login at:', `${backendUrl}/api/doctors/login`);
       const doctorResponse = await axios.post(
         `${backendUrl}/api/doctors/login`,
         { professionalEmail: email, password },
         { timeout: 5000 }
       );
-      console.log('Doctor login response:', {
-        status: doctorResponse.status,
-        data: doctorResponse.data,
-      });
-
-      const doctorData = doctorResponse.data;
+      console.log('Doctor login response:', doctorResponse.data);
+  
+      const doctorData = doctorResponse.data; // No token, just DoctorDTO
       const doctorUserData = {
         id: doctorData.id,
         name: `${doctorData.firstName} ${doctorData.lastName}`,
@@ -103,10 +111,10 @@ const LoginPage: React.FC = () => {
         position: doctorData.position,
         documentUrl: doctorData.documentUrl || null,
       };
-
+  
       await AsyncStorage.setItem('userData', JSON.stringify(doctorUserData));
-      console.log('Doctor user data saved to AsyncStorage:', doctorUserData);
-
+      console.log('Doctor login success:', { doctorUserData });
+  
       if (rememberPassword) {
         await AsyncStorage.setItem('email', email);
         await AsyncStorage.setItem('password', password);
@@ -114,35 +122,26 @@ const LoginPage: React.FC = () => {
         await AsyncStorage.removeItem('email');
         await AsyncStorage.removeItem('password');
       }
-
-      Alert.alert('Success', 'Logged in as Healthcare Provider!', [
-        { text: 'OK', onPress: () => router.replace('/home') },
-      ]);
+  
+      console.log('Navigating to /home');
+      router.push('/home'); // Navigate to home
+      Alert.alert('Success', 'Logged in as Healthcare Provider!');
     } catch (doctorError: any) {
-      console.error('Doctor login failed:', {
-        message: doctorError.message,
-        status: doctorError.response?.status,
-        data: doctorError.response?.data,
-        config: doctorError.config,
-      });
-
-      // Fallback to parent login
-      console.log('Attempting parent login at:', `${backendUrl}/api/parents/login`);
+      console.error('Doctor login failed:', doctorError.response?.data || doctorError.message);
+  
+      // Parent login fallback
       try {
+        console.log('Attempting parent login at:', `${backendUrl}/api/parents/login`);
         const parentResponse = await axios.post(
           `${backendUrl}/api/parents/login`,
           { email, password },
           { timeout: 5000 }
         );
-        console.log('Parent login response:', {
-          status: parentResponse.status,
-          data: parentResponse.data,
-        });
-      
         const parentData = parentResponse.data;
         const parentUserData = {
+          id: parentData.id,
           name: parentData.fullName || email.split('@')[0].replace(/[.\d]/g, ' ').trim(),
-          email: email,
+          email: parentData.email,
           role: 'Parent/Guardian',
           registrationDate: new Date().toLocaleDateString('en-US', {
             day: '2-digit',
@@ -151,29 +150,14 @@ const LoginPage: React.FC = () => {
           }),
           childName: parentData.childName || 'No child registered',
         };
-      
+  
         await AsyncStorage.setItem('userData', JSON.stringify(parentUserData));
-        console.log('Parent user data saved to AsyncStorage:', parentUserData);
-      
-        if (rememberPassword) {
-          await AsyncStorage.setItem('email', email);
-          await AsyncStorage.setItem('password', password);
-        } else {
-          await AsyncStorage.removeItem('email');
-          await AsyncStorage.removeItem('password');
-        }
-      
-        setTimeout(() => router.replace('/home'), 50); // Navigate to home after a short delay
-        Alert.alert('Success', 'Logged in as Parent/Guardian!', [{ text: 'OK' }]);
+        console.log('Parent login success:', { parentUserData });
+        router.push('/home');
+        Alert.alert('Success', 'Logged in as Parent/Guardian!');
       } catch (parentError: any) {
-        console.error('Parent login failed:', {
-          message: parentError.message,
-          status: parentError.response?.status,
-          data: parentError.response?.data,
-          config: parentError.config,
-        });
-        const errorMessage = parentError.response?.data || 'Invalid email or password';
-        Alert.alert('Login Failed', errorMessage);
+        console.error('Parent login failed:', parentError.response?.data || parentError.message);
+        Alert.alert('Login Failed', parentError.response?.data || 'Invalid email or password');
       }
     } finally {
       setIsLoading(false);

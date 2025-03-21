@@ -1,41 +1,47 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import axios from 'axios';
 
 export default function ResetPW2() {
   const router = useRouter();
+  const { email } = useLocalSearchParams();
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  
+  const backendUrl = 'http://192.168.8.119:8082';
 
-  const handleChangePassword = () => {
-    // Add your password change logic here
+  const handleChangePassword = async () => {
     if (newPassword !== confirmPassword) {
-      alert('Passwords do not match. Please try again.');
+      Alert.alert('Error', 'Passwords do not match. Please try again.');
       return;
     }
-
-    // Simulate a successful password change
-    alert('Password changed successfully!');
-    router.push('/resetDone'); // Navigate to the Reset Done screen
+    if (!newPassword) {
+      Alert.alert('Error', 'Please enter a new password.');
+      return;
+    }
+    try {
+      await axios.post(`${backendUrl}/api/reset/update`, { email, newPassword });
+      Alert.alert('Success', 'Password changed successfully!');
+      router.push('/resetDone');
+    } catch (error) {
+      Alert.alert('Error', 'Failed to update password.');
+      console.error(error);
+    }
   };
 
   return (
     <View style={styles.container}>
-      {/* Back Button */}
       <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
         <Ionicons name="chevron-back" size={24} color="black" />
       </TouchableOpacity>
-
-      {/* Title & Description */}
-      <Text style={styles.title}>Change your password</Text>
+      <Text style={styles.title}>Change Your Password</Text>
       <Text style={styles.description}>
-        Enter the new password to reset your password.
+        Enter your new password to reset it.
       </Text>
-
-      {/* New Password Input */}
       <View style={styles.inputContainer}>
         <TextInput
           style={styles.input}
@@ -46,11 +52,9 @@ export default function ResetPW2() {
           onChangeText={setNewPassword}
         />
         <TouchableOpacity onPress={() => setShowNewPassword(!showNewPassword)} style={styles.eyeIcon}>
-          <Ionicons name={showNewPassword ? "eye-off" : "eye"} size={24} color="black" />
+          <Ionicons name={showNewPassword ? 'eye-off' : 'eye'} size={24} color="black" />
         </TouchableOpacity>
       </View>
-
-      {/* Confirm Password Input */}
       <View style={styles.inputContainer}>
         <TextInput
           style={styles.input}
@@ -61,16 +65,12 @@ export default function ResetPW2() {
           onChangeText={setConfirmPassword}
         />
         <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)} style={styles.eyeIcon}>
-          <Ionicons name={showConfirmPassword ? "eye-off" : "eye"} size={24} color="black" />
+          <Ionicons name={showConfirmPassword ? 'eye-off' : 'eye'} size={24} color="black" />
         </TouchableOpacity>
       </View>
-
-      {/* Change Button */}
       <TouchableOpacity style={styles.changeButton} onPress={handleChangePassword}>
         <Text style={styles.changeButtonText}>Change</Text>
       </TouchableOpacity>
-
-    
     </View>
   );
 }
@@ -120,7 +120,6 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     alignItems: 'center',
     borderRadius: 8,
-    marginBottom: 10,
     marginTop: 10,
   },
   changeButtonText: {
@@ -128,5 +127,4 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: 'bold',
   },
-  
 });

@@ -1,13 +1,25 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image, ActivityIndicator, Platform } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import axios from 'axios';
 
-const backendUrl = 'http://192.168.8.119:8082';
-//const backendUrl = 'https://47b8-2402-4000-b2c0-bf2d-1d0e-2607-fd8e-685a.ngrok-free.app';
+const getBackendUrl = () => {
+  if (Platform.OS === 'web') {
+    return 'http://localhost:8082'; // Web browser on same machine
+  } else if (Platform.OS === 'android' && !Platform.isTV) {
+    return 'http://10.0.2.2:8082'; // Android emulator
+  } else if (Platform.OS === 'ios' && !Platform.isPad) {
+    return 'http://localhost:8082'; // iOS simulator
+  } else {
+    //return 'http://10.31.23.48:8082'; // Physical devices (update to current IP)
+    return 'http://192.168.8.119:8082';
+    // return 'https://47b8-2402-4000-b2c0-bf2d.ngrok-free.app'; // Uncomment for submission
+  }
+};
+
 
 export default function HealthcareProviderRegistration2() {
   const router = useRouter();
@@ -60,7 +72,7 @@ export default function HealthcareProviderRegistration2() {
         type: 'image/jpeg',
       } as any);
   
-      const response = await axios.post(`${backendUrl}/api/upload`, formData, {
+      const response = await axios.post(`${getBackendUrl}/api/upload`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       setPhotoUrl(response.data.url);

@@ -6,7 +6,8 @@ import * as DocumentPicker from 'expo-document-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
-const backendUrl = 'http://192.168.8.119:8082';
+//const backendUrl = 'http://192.168.8.119:8082';
+const backendUrl = 'http://10.31.23.48:8082';
 
 export default function HealthcareProviderRegistration3() {
   const router = useRouter();
@@ -69,10 +70,10 @@ export default function HealthcareProviderRegistration3() {
           type: fileType || 'application/octet-stream',
         } as any);
 
-        const uploadResponse = await axios.post(`${backendUrl}/api/upload`, formData, {
+        const uploadResponse = await axios.post(`${backendUrl}/api/doctors/upload`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
-        documentUrl = uploadResponse.data.fileUrl;
+        documentUrl = uploadResponse.data.url; // Match backend response
         console.log('Document uploaded:', documentUrl);
       }
 

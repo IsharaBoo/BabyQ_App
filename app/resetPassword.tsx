@@ -1,36 +1,40 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation, NavigationProp } from '@react-navigation/native';
-
-type RootStackParamList = {
-  ResetPW: undefined;
-  // Add other routes here if needed
-};
+import { useRouter } from 'expo-router';
+import axios from 'axios';
 
 export default function ResetPasswordScreen() {
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const router = useRouter();
   const [email, setEmail] = useState('');
+  
+  const backendUrl = 'http://192.168.8.119:8082'; // Adjust to your backend URL
 
-  const handleReset = () => {
-    // Add your reset logic here (e.g., send a confirmation code to the email)
-    navigation.navigate('ResetPW'); // Navigate to the Reset Password Confirmation Screen
+  const handleReset = async () => {
+    if (!email) {
+      Alert.alert('Error', 'Please enter an email address');
+      return;
+    }
+    try {
+      // Simulate sending reset code
+      await axios.post(`${backendUrl}/api/reset/send`, { email });
+      Alert.alert('Success', 'A reset code has been sent to your email.');
+      router.push({ pathname: '/ResetPW', params: { email } });
+    } catch (error) {
+      Alert.alert('Error', 'Failed to send reset code. Try again.');
+      console.error(error);
+    }
   };
 
   return (
     <View style={styles.container}>
-      {/* Back Button */}
-      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+      <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
         <Ionicons name="chevron-back" size={24} color="black" />
       </TouchableOpacity>
-
-      {/* Title & Description */}
-      <Text style={styles.title}>Reset password</Text>
+      <Text style={styles.title}>Reset Password</Text>
       <Text style={styles.description}>
-        Enter the email address you used when you signed up for your account, and we will email a link to reset your password.
+        Enter the email address you used when you signed up, and we’ll email a link to reset your password.
       </Text>
-
-      {/* Email Input */}
       <TextInput
         style={styles.input}
         placeholder="Email address"
@@ -40,14 +44,10 @@ export default function ResetPasswordScreen() {
         value={email}
         onChangeText={setEmail}
       />
-
-      {/* Reset Button */}
       <TouchableOpacity style={styles.resetButton} onPress={handleReset}>
         <Text style={styles.resetButtonText}>Reset</Text>
       </TouchableOpacity>
-
-      {/* Back Button */}
-      <TouchableOpacity style={styles.backButtonSecondary} onPress={() => navigation.goBack()}>
+      <TouchableOpacity style={styles.backButtonSecondary} onPress={() => router.back()}>
         <Text style={styles.backButtonText}>Back</Text>
       </TouchableOpacity>
     </View>

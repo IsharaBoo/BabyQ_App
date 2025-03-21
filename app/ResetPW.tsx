@@ -1,49 +1,40 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import axios from 'axios';
 
 export default function ResetPW() {
   const router = useRouter();
+  const { email } = useLocalSearchParams(); // Get email from previous screen
   const [confirmationCode, setConfirmationCode] = useState('');
+  
+  const backendUrl = 'http://192.168.8.119:8082';
 
-  const handleVerify = () => {
-    // Add your verification logic here
-    // For example, validate the confirmation code and reset the password
-    if (validateCode()) {
-      alert('Password reset successful!');
-      router.push('/ResetPW2'); // Navigate to the Reset Password Confirmation Screen
+  const handleVerify = async () => {
+    if (!confirmationCode) {
+      Alert.alert('Error', 'Please enter the confirmation code');
+      return;
     }
-  };
-
-  const validateCode = () => {
-    // Add your validation logic here
-    // For example, check if the confirmation code is correct
-    return confirmationCode.length === 4; // Example validation
-  };
-
-  const handleBack = () => {
-    if (router.canGoBack()) {
-      router.back();
-    } else {
-      router.push('/resetPassword'); // Navigate to a specific screen if there is no previous screen
+    try {
+      await axios.post(`${backendUrl}/api/reset/verify`, { email, code: confirmationCode });
+      Alert.alert('Success', 'Code verified!');
+      router.push({ pathname: '/ResetPW2', params: { email } });
+    } catch (error) {
+      Alert.alert('Error', 'Invalid code or verification failed.');
+      console.error(error);
     }
   };
 
   return (
     <View style={styles.container}>
-      {/* Back Button */}
-      <TouchableOpacity onPress={handleBack} style={styles.backButton}>
+      <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
         <Ionicons name="chevron-back" size={24} color="black" />
       </TouchableOpacity>
-
-      {/* Title & Description */}
-      <Text style={styles.title}>Reset password</Text>
+      <Text style={styles.title}>Reset Password</Text>
       <Text style={styles.description}>
-        Enter the confirmation code to reset your password.
+        Enter the confirmation code sent to {email}.
       </Text>
-
-      {/* Confirmation Code Input */}
       <TextInput
         style={styles.input}
         placeholder="Confirmation code"
@@ -53,14 +44,10 @@ export default function ResetPW() {
         value={confirmationCode}
         onChangeText={setConfirmationCode}
       />
-
-      {/* Verify Button */}
       <TouchableOpacity style={styles.verifyButton} onPress={handleVerify}>
         <Text style={styles.verifyButtonText}>Verify</Text>
       </TouchableOpacity>
-
-      {/* Back Button */}
-      <TouchableOpacity style={styles.backButtonSecondary} onPress={handleBack}>
+      <TouchableOpacity style={styles.backButtonSecondary} onPress={() => router.back()}>
         <Text style={styles.backButtonText}>Back</Text>
       </TouchableOpacity>
     </View>
