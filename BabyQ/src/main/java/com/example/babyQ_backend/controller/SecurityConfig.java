@@ -4,6 +4,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -33,7 +35,8 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(List.of(
                 "http://localhost:8081",  // React Native Metro Bundler
                 "http://localhost:8082",  // Spring Boot Backend
-                "http://10.0.2.2:8082"    // Android Emulator accessing localhost
+                "http://10.0.2.2:8082",  // Android Emulator accessing localhost
+                "http://10.31.23.48:8082"    // Your local IP (physical devices)
         ));
 
         // Allowed HTTP methods
@@ -50,5 +53,9 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", configuration);
 
         return source;
+    }
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 }

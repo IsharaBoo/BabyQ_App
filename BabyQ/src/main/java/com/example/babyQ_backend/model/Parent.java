@@ -27,8 +27,6 @@ public class Parent {
     private String email;
     private String password;
     private String childName;
-    @Column(name = "registration_date")
-    private LocalDate registrationDate;
 
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
     @JsonManagedReference
@@ -69,6 +67,4 @@ public class Parent {
    public String getChildName() { return childName; }
     public void setChildName(String childName) { this.childName = childName; }
 
-    public LocalDate getRegistrationDate() { return registrationDate; }
-    public void setRegistrationDate(LocalDate registrationDate) { this.registrationDate = registrationDate; }
 }

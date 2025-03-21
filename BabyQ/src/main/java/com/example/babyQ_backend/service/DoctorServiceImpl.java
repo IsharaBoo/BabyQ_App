@@ -12,6 +12,7 @@ public class DoctorServiceImpl implements DoctorService {
     @Autowired
     private DoctorRepository doctorRepository;
 
+
     @Override
     public Doctor registerDoctor(Doctor doctor) {
         return doctorRepository.save(doctor);

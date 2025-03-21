@@ -12,4 +12,9 @@ public interface ParentService {
     Parent getParentById(Long id); // Returns null if not found, consistent with current usage
     Optional<Parent> findByEmail(String email); // For login
     Parent loginParent(String email, String password) throws Exception;
+
+    // Password Reset Methods
+    String generateResetCode(String email) throws Exception;
+    boolean verifyResetCode(String email, String code) throws Exception;
+    void updatePassword(String email, String newPassword) throws Exception;
 }

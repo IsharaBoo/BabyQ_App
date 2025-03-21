@@ -39,7 +39,7 @@ public class DoctorController_D {
             String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
             Path filePath = Paths.get(uploadDir + fileName);
             Files.write(filePath, file.getBytes());
-            String fileUrl = "http://192.168.1.5:8082/" + uploadDir + fileName;
+            String fileUrl = "http://localhost:8082/" + uploadDir + fileName;
             return ResponseEntity.ok(Map.of("url", fileUrl));
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("error", "Upload failed"));

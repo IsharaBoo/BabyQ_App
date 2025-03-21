@@ -18,7 +18,7 @@ public class ParentController_D {
     @Autowired
     private ParentService parentService;
 
-    @PostMapping
+    @PostMapping("/register")
     public ResponseEntity<ParentDTO> registerParent(@RequestBody ParentDTO parentDTO) {
         try {
             Parent parent = mapToEntity(parentDTO);
@@ -30,19 +30,13 @@ public class ParentController_D {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ParentDTO> loginParent(@RequestBody LoginDTO loginDTO) { // Changed return type
+    public ResponseEntity<ParentDTO> loginParent(@RequestBody LoginDTO loginDTO) {
         try {
-            Optional<Parent> parentOpt = parentService.findByEmail(loginDTO.getEmail());
-            if (parentOpt.isEmpty()) {
-                return ResponseEntity.status(401).body(null); // Could return error DTO
-            }
-            Parent parent = parentOpt.get();
-            if (!parent.getPassword().equals(loginDTO.getPassword())) {
-                return ResponseEntity.status(401).body(null);
-            }
-            return ResponseEntity.ok(mapToDTO(parent)); // Return ParentDTO with child data
+            Parent parent = parentService.loginParent(loginDTO.getEmail(), loginDTO.getPassword());
+            return ResponseEntity.ok(mapToDTO(parent));
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(null);
+            System.out.println("Login failed - Email: " + loginDTO.getEmail() + ", Reason: " + e.getMessage());
+            return ResponseEntity.status(401).body(null);
         }
     }
 
@@ -141,7 +135,6 @@ public class ParentController_D {
         parent.setPhoneNumber(dto.getPhoneNumber());
         parent.setEmail(dto.getEmail());
         parent.setPassword(dto.getPassword());
-        parent.setRegistrationDate(dto.getRegistrationDate());
         return parent;
     }
 
