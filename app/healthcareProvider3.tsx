@@ -1,13 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Platform } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-
-//const backendUrl = 'http://192.168.8.119:8082';
-const backendUrl = 'http://10.31.23.48:8082';
 
 export default function HealthcareProviderRegistration3() {
   const router = useRouter();
@@ -30,6 +27,21 @@ export default function HealthcareProviderRegistration3() {
     position: (params.position as string) || '',
     photoUrl: (params.photoUrl as string) || null,
   };
+
+  // Dynamic backend URL based on platform
+  const getBackendUrl = () => {
+    if (Platform.OS === 'web') {
+      return 'http://localhost:8082';
+      //return  'http://10.31.23.48:8082';
+    } else if (Platform.OS === 'android') {
+      return 'http://10.0.2.2:8082'; // Emulator
+    } else {
+      return 'http://192.168.8.119:8082'; // iOS and physical devices
+      //return 'http://10.31.23.48:8082';
+    }
+  };
+
+  const backendUrl = getBackendUrl();
 
   const handleUpload = async () => {
     try {
@@ -91,7 +103,7 @@ export default function HealthcareProviderRegistration3() {
         documentUrl: documentUrl || null,
       };
 
-      const response = await axios.post(`${backendUrl}/api/doctors`, providerPayload);
+      const response = await axios.post(`${backendUrl}/api/doctors/register`, providerPayload);
       const registeredDoctor = response.data;
 
       const userData = {
@@ -175,7 +187,6 @@ export default function HealthcareProviderRegistration3() {
   );
 }
 
-// Styles remain unchanged
 const styles = StyleSheet.create({
   container: {
     flex: 1,

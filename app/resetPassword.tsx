@@ -1,14 +1,26 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import axios from 'axios';
 
+// Dynamic backend URL based on platform
+const getBackendUrl = () => {
+  if (Platform.OS === 'web') {
+    return 'http://localhost:8082';
+    //return 'http://10.31.23.48:8082';
+  } else if (Platform.OS === 'android') {
+    return 'http://10.0.2.2:8082'; // Emulator
+  } else {
+    return 'http://192.168.8.119:8082'; // iOS and physical devices
+    //return 'http://10.31.23.48:8082';
+  }
+};
+
 export default function ResetPasswordScreen() {
   const router = useRouter();
   const [email, setEmail] = useState('');
-  
-  const backendUrl = 'http://192.168.8.119:8082'; // Adjust to your backend URL
+  const backendUrl = getBackendUrl(); // Use dynamic URL
 
   const handleReset = async () => {
     if (!email) {

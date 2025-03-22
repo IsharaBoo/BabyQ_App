@@ -8,15 +8,13 @@ import axios from 'axios';
 
 const getBackendUrl = () => {
   if (Platform.OS === 'web') {
-    return 'http://localhost:8082'; // Web browser on same machine
-  } else if (Platform.OS === 'android' && !Platform.isTV) {
-    return 'http://10.0.2.2:8082'; // Android emulator
-  } else if (Platform.OS === 'ios' && !Platform.isPad) {
-    return 'http://localhost:8082'; // iOS simulator
+    return 'http://localhost:8082';
+    //return  'http://10.31.23.48:8082';
+  } else if (Platform.OS === 'android') {
+    return 'http://10.0.2.2:8082'; // Emulator
   } else {
-    //return 'http://10.31.23.48:8082'; // Physical devices (update to current IP)
-    return 'http://192.168.8.119:8082';
-    // return 'https://47b8-2402-4000-b2c0-bf2d.ngrok-free.app'; // Uncomment for submission
+    return 'http://192.168.8.119:8082'; // iOS and physical devices
+    //return 'http://10.31.23.48:8082';
   }
 };
 
@@ -72,7 +70,7 @@ export default function HealthcareProviderRegistration2() {
         type: 'image/jpeg',
       } as any);
   
-      const response = await axios.post(`${getBackendUrl}/api/upload`, formData, {
+      const response = await axios.post(`${getBackendUrl}/api/doctors/upload`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       setPhotoUrl(response.data.url);

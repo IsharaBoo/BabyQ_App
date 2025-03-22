@@ -90,7 +90,7 @@ const LoginPage: React.FC = () => {
       );
       console.log('Doctor login response:', doctorResponse.data);
   
-      const doctorData = doctorResponse.data; // No token, just DoctorDTO
+      const doctorData = doctorResponse.data; 
       const doctorUserData = {
         id: doctorData.id,
         name: `${doctorData.firstName} ${doctorData.lastName}`,
@@ -143,14 +143,20 @@ const LoginPage: React.FC = () => {
           name: parentData.fullName || email.split('@')[0].replace(/[.\d]/g, ' ').trim(),
           email: parentData.email,
           role: 'Parent/Guardian',
-          registrationDate: new Date().toLocaleDateString('en-US', {
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric',
-          }),
+          registrationDate: parentData.registrationDate
+            ? (() => {
+                const date = new Date(parentData.registrationDate);
+                return isNaN(date.getTime())
+                  ? 'Unknown'
+                  : date.toLocaleDateString('en-US', {
+                      day: '2-digit',
+                      month: 'short',
+                      year: 'numeric',
+                    });
+              })()
+            : 'Unknown',
           childName: parentData.childName || 'No child registered',
         };
-  
         await AsyncStorage.setItem('userData', JSON.stringify(parentUserData));
         console.log('Parent login success:', { parentUserData });
         router.push('/home');
