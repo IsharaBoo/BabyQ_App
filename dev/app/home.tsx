@@ -356,7 +356,7 @@ export default function HomePage() {
             <FontAwesome name="home" size={22} color="#2D4BC2" />
             <Text style={[styles.navText, styles.activeNavText]}>Home</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.navItem} onPress={() => router.push('./communityPage')}>
+          <TouchableOpacity style={styles.navItem} onPress={() => router.push('./community')}>
             <FontAwesome name="users" size={22} color="#888" />
             <Text style={styles.navText}>Community</Text>
           </TouchableOpacity>
