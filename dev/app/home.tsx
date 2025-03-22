@@ -55,8 +55,8 @@ export default function HomePage() {
 
     const hours = new Date().getHours();
     if (hours < 12) setGreeting('Good Morning');
-    else if (hours < 18) setGreeting('Good Afternoon');
-    else setGreeting('Good Evening');
+    else if (hours < 18) setGreeting('Hii!! Good Afternoon');
+    else setGreeting('Hii!! Good Evening');
 
     Animated.parallel([
       Animated.timing(fadeAnim, {
