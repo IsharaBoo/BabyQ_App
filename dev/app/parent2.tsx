@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView, Platform } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { RadioButton } from 'react-native-paper';
@@ -18,12 +18,12 @@ export default function ParentRegistration2() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const parentData = {
-    fullName: params.fullName as string,
-    nicNumber: params.nicNumber as string,
-    dateOfBirth: params.dateOfBirth as string,
-    address: params.address as string,
-    phoneNumber: params.phoneNumber as string,
-    email: params.email as string,
+    fullName: params.fullName as string || '',
+    nicNumber: params.nicNumber as string || '',
+    dateOfBirth: params.dateOfBirth as string || '', // Must be YYYY-MM-DD
+    address: params.address as string || '',
+    phoneNumber: params.phoneNumber as string || '',
+    email: params.email as string || '',
   };
 
   const [childName, setChildName] = useState<string>('');
@@ -37,40 +37,47 @@ export default function ParentRegistration2() {
   const [additionalInfo, setAdditionalInfo] = useState<string>('');
   const [password, setPassword] = useState<string>('');
 
-  //const backendUrl = 'http://192.168.8.119:8082';
-  const backendUrl = 'http://10.31.23.48:8082';
+  const getBackendUrl = () => {
+    if (Platform.OS === 'web') {
+      return 'http://localhost:8082';
+      //return  'http://10.31.23.48:8082';
+    } else if (Platform.OS === 'android') {
+      return 'http://10.0.2.2:8082'; // Emulator
+    } else {
+      return 'http://192.168.8.119:8082'; // iOS and physical devices
+      //return 'http://10.31.23.48:8082';
+    }
+  };
+  const backendUrl = getBackendUrl();
 
   const handleSignUp = async () => {
     setIsLoading(true);
-  
-    // Required field validation
+
     if (!childName || !birthCertNumber || !childDob.day || !childDob.month || !childDob.year || !gender || !password) {
       Alert.alert('Error', 'Please fill in all required fields');
       setIsLoading(false);
       return;
     }
-  
-    // Password length validation
+
     if (password.length < 6) {
       Alert.alert('Error', 'Password must be at least 6 characters long');
       setIsLoading(false);
       return;
     }
-  
-    // Child DOB validation
+
     const childDobString = `${childDob.year}-${childDob.month.padStart(2, '0')}-${childDob.day.padStart(2, '0')}`;
     const childDobDate = new Date(childDobString);
-    const isValidDate = !isNaN(childDobDate.getTime()) && 
-      parseInt(childDob.month) <= 12 && 
-      parseInt(childDob.day) <= new Date(parseInt(childDob.year), parseInt(childDob.month), 0).getDate() &&
+    const isValidDate =
+      !isNaN(childDobDate.getTime()) &&
+      parseInt(childDob.month) >= 1 && parseInt(childDob.month) <= 12 &&
+      parseInt(childDob.day) >= 1 && parseInt(childDob.day) <= new Date(parseInt(childDob.year), parseInt(childDob.month), 0).getDate() &&
       childDobDate <= new Date();
     if (!isValidDate) {
       Alert.alert('Error', 'Please enter a valid child date of birth');
       setIsLoading(false);
       return;
     }
-  
-    // Numeric field validation
+
     if (weight && isNaN(parseFloat(weight))) {
       Alert.alert('Error', 'Weight must be a valid number');
       setIsLoading(false);
@@ -81,9 +88,8 @@ export default function ParentRegistration2() {
       setIsLoading(false);
       return;
     }
-  
+
     try {
-      // Register Parent
       const parentPayload = {
         fullName: parentData.fullName,
         nicNumber: parentData.nicNumber,
@@ -94,14 +100,13 @@ export default function ParentRegistration2() {
         password,
       };
       console.log('Registering parent:', parentPayload);
-      const parentResponse = await axios.post(`${backendUrl}/api/parents`, parentPayload, { timeout: 10000 });
-      const parentId = parentResponse.data.id || parentResponse.data.parent?.id;
+      const parentResponse = await axios.post(`${backendUrl}/api/parents/register`, parentPayload, { timeout: 15000 });
+      const parentId = parentResponse.data.id;
       if (!parentId) {
         throw new Error('Parent ID not returned from server');
       }
       console.log('Parent registered with ID:', parentId);
-  
-      // Register Child
+
       const childPayload = {
         name: childName,
         birthCNo: birthCertNumber,
@@ -116,10 +121,9 @@ export default function ParentRegistration2() {
         parentId,
       };
       console.log('Registering child:', childPayload);
-      await axios.post(`${backendUrl}/api/children`, childPayload, { timeout: 10000 });
+      await axios.post(`${backendUrl}/api/children`, childPayload, { timeout: 15000 });
       console.log('Child registered successfully');
-  
-      // Save to AsyncStorage
+
       const userData = {
         name: parentData.fullName,
         email: parentData.email,
@@ -133,32 +137,26 @@ export default function ParentRegistration2() {
         },
         address: parentData.address,
         phoneNumber: parentData.phoneNumber,
-        childName: childName, 
+        childName,
       };
       await AsyncStorage.setItem('userData', JSON.stringify(userData));
       console.log('User data saved to AsyncStorage:', userData);
-  
-      // Navigate
-      Alert.alert(
-        'Success',
-        'Parent and child registered successfully!',
-        [{
-          text: 'OK',
-          onPress: () => setTimeout(() => router.replace('/home'), 50),
-        }],
-        { cancelable: false }
-      );
+
+      console.log('Showing success alert');
+    Alert.alert('Success', 'Parent and child registered successfully!');
+    console.log('Navigating to /home');
+    router.push('/home');
+
     } catch (error: any) {
       console.error('Signup error:', error.response?.data || error.message);
       let errorMessage = 'An error occurred during registration';
       if (error.response) {
-        const errorData = error.response.data;
-        errorMessage = typeof errorData === 'string' ? errorData : errorData?.message || JSON.stringify(errorData);
-        if (error.response.status === 400) {
-          errorMessage = errorMessage || 'Invalid data provided';
-        } else if (error.response.status === 500) {
-          errorMessage = errorMessage || 'Server error, please try again later';
-        }
+        errorMessage = error.response.data || 'Server error';
+        if (error.response.status === 400) errorMessage = 'Invalid data provided';
+        if (error.response.status === 404) errorMessage = 'Parent not found';
+        if (error.response.status === 500) errorMessage = 'Server error, please try again later';
+      } else if (error.code === 'ECONNABORTED') {
+        errorMessage = 'Request timed out. Check your network or server.';
       } else if (error.request) {
         errorMessage = 'Network error: Unable to reach the server';
       }
