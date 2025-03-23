@@ -53,13 +53,16 @@ export default function RootLayout() {
       <Stack.Screen name="ResetPW2" options={{ headerShown: false }} />
       <Stack.Screen name="resetDone" options={{ headerShown: false }} />
       <Stack.Screen name="doctorCategory" options={{ headerShown: false }} />
-      <Stack.Screen name="doctorProfile" options={{ headerShown: false }} />
+      <Stack.Screen name="Dprofile" options={{ headerShown: false }} />
       <Stack.Screen name="doctorSearchResults" options={{ headerShown: false }} />
       <Stack.Screen name="ChannelHistory" options={{ headerShown: false }} />
-      {/* <Stack.Screen name="DoctorHomePage" options={{ headerShown: false }} /> */}
-      {/* <Stack.Screen name="DoctorProfile" options={{ headerShown: false }} />
-      <Stack.Screen name="DoctorProfileEdit" options={{ headerShown: false }} />
-      <Stack.Screen name="DoctorProfileEdit2" options={{ headerShown: false }} /> */}
+      <Stack.Screen name="Channel" options={{ headerShown: false }} />
+      <Stack.Screen name="community" options={{ headerShown: false }} />
+      <Stack.Screen name="CHDR" options={{ headerShown: false }} />
+      <Stack.Screen name="Feeding" options={{ headerShown: false }} />
+      <Stack.Screen name="mental-health" options={{ headerShown: false }} />
+      <Stack.Screen name="NewPost" options={{ headerShown: false }} />
+      
     </Stack>
   );
 }

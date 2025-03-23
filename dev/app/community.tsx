@@ -40,7 +40,7 @@ export default function CommunityPage() {
 
   const fetchPosts = async () => {
     try {
-      const response = await fetch("http://localhost:8080/api/posts");
+      const response = await fetch("http://localhost:8082/api/posts");
       const data = await response.json();
       setPosts(data);
     } catch (error) {
@@ -58,7 +58,7 @@ export default function CommunityPage() {
     if (likedPosts.has(id)) return;
 
     try {
-      const response = await fetch(`http://localhost:8080/api/posts/${id}/like`, {
+      const response = await fetch(`http://localhost:8082/api/posts/${id}/like`, {
         method: "PUT",
       });
       if (response.ok) {
@@ -77,7 +77,7 @@ export default function CommunityPage() {
     if (!commentText.trim()) return;
 
     try {
-      const response = await fetch(`http://localhost:8080/api/posts/${id}/comment`, {
+      const response = await fetch(`http://localhost:8082/api/posts/${id}/comment`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(commentText),

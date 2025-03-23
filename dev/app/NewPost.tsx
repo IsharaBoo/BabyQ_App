@@ -32,7 +32,7 @@ export default function NewPost() {
     if (!name.trim() || !content.trim()) return;
 
     try {
-      const response = await fetch("http://localhost:8080/api/posts", {
+      const response = await fetch("http://localhost:8082/api/posts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, content }),
