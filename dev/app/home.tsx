@@ -285,7 +285,7 @@ export default function HomePage() {
             >
               <View style={styles.bookAppointmentContent}>
                 <FontAwesome5 name="calendar-alt" size={20} color="#FFFFFF" style={styles.bookIcon} />
-                <Text style={styles.bookAppointmentButtonText}>Book Your Visit!</Text>
+                <Text style={styles.bookAppointmentButtonText}>Book An Appointment!</Text>
               </View>
             </LinearGradient>
           </TouchableOpacity>
