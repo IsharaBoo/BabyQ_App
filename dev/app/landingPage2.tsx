@@ -74,7 +74,7 @@ const LandingPage2: React.FC = () => {
 
       <TouchableOpacity
         style={styles.buttonSecondary}
-        onPress={() => router.push('/home')}
+        onPress={() => router.push('/login')}
         activeOpacity={0.8}
       >
         <Text style={styles.buttonSecondaryText}>Login</Text>
