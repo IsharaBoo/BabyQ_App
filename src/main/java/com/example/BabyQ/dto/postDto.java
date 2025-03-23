@@ -9,12 +9,9 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-
 public class postDto {
     private Long postId;
     private Long userId;
     private String content;
     private LocalDateTime date;
-
-
 }
