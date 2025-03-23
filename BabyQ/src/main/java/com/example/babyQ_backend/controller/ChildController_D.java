@@ -31,17 +31,20 @@ public class ChildController_D {
             return ResponseEntity.badRequest().body("Parent ID is required.");
         }
 
-        Parent parent = parentRepository.findById(childDTO.getParentId())
-                .orElseThrow(() -> new IllegalArgumentException("Parent not found with ID: " + childDTO.getParentId()));
-
-        Child child = mapToEntity(childDTO);
-        child.setParent(parent);
-
         try {
+            Parent parent = parentRepository.findById(childDTO.getParentId())
+                    .orElseThrow(() -> new IllegalArgumentException("Parent not found with ID: " + childDTO.getParentId()));
+
+            Child child = mapToEntity(childDTO);
+            child.setParent(parent);
+
             Child savedChild = childService.saveChild(child);
             return ResponseEntity.ok(mapToDTO(savedChild));
+        } catch (IllegalArgumentException e) {
+            System.err.println("Error: " + e.getMessage());
+            return ResponseEntity.status(404).body(e.getMessage());
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println("Error saving child: " + e.getMessage());
             return ResponseEntity.status(500).body("Error saving child: " + e.getMessage());
         }
     }

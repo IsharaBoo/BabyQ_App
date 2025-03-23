@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,11 +21,13 @@ public class ParentController_D {
 
     @PostMapping("/register")
     public ResponseEntity<ParentDTO> registerParent(@RequestBody ParentDTO parentDTO) {
+        System.out.println("Received parent registration: " + parentDTO);
         try {
             Parent parent = mapToEntity(parentDTO);
             Parent registeredParent = parentService.registerParent(parent);
             return ResponseEntity.ok(mapToDTO(registeredParent));
         } catch (Exception e) {
+            System.out.println("Registration error: " + e.getMessage());
             return ResponseEntity.status(500).body(null);
         }
     }
@@ -100,6 +103,7 @@ public class ParentController_D {
         dto.setPhoneNumber(parent.getPhoneNumber());
         dto.setEmail(parent.getEmail());
         dto.setPassword(parent.getPassword());
+        dto.setRegistrationDate(parent.getRegistrationDate());
 
         if (parent.getChildren() != null && !parent.getChildren().isEmpty()) {
             dto.setChildren(parent.getChildren().stream().map(child -> {
@@ -147,4 +151,6 @@ public class ParentController_D {
         public String getPassword() { return password; }
         public void setPassword(String password) { this.password = password; }
     }
+
+
 }

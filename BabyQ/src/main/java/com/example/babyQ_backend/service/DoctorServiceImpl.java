@@ -12,7 +12,6 @@ public class DoctorServiceImpl implements DoctorService {
     @Autowired
     private DoctorRepository doctorRepository;
 
-
     @Override
     public Doctor registerDoctor(Doctor doctor) {
         return doctorRepository.save(doctor);
@@ -33,7 +32,7 @@ public class DoctorServiceImpl implements DoctorService {
 
     @Override
     public Doctor updateDoctor(Doctor doctorDetails) {
-        Long id = doctorDetails.getId(); // Extract ID from the Doctor object
+        Long id = doctorDetails.getId();
         return doctorRepository.findById(id)
                 .map(existingDoctor -> {
                     existingDoctor.setFirstName(doctorDetails.getFirstName());
@@ -46,14 +45,16 @@ public class DoctorServiceImpl implements DoctorService {
                     existingDoctor.setAffiliatedHospital(doctorDetails.getAffiliatedHospital());
                     existingDoctor.setWorkplaceAddress(doctorDetails.getWorkplaceAddress());
                     existingDoctor.setPosition(doctorDetails.getPosition());
-                    return doctorRepository.save(existingDoctor); // Save changes
+                    return doctorRepository.save(existingDoctor);
                 })
                 .orElseThrow(() -> new IllegalArgumentException("Doctor with ID " + id + " not found"));
     }
+
     public Doctor getDoctorById(Long id) {
         return doctorRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Doctor not found with ID: " + id));
     }
+
     @Override
     public boolean emailExists(String email) {
         return doctorRepository.findByProfessionalEmail(email) != null;
@@ -61,15 +62,15 @@ public class DoctorServiceImpl implements DoctorService {
 
     @Override
     public List<Doctor> searchDoctors(String query) {
-        // Search by firstName, lastName, or position (case-insensitive)
         return doctorRepository.findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCaseOrPositionContainingIgnoreCase(
                 query, query, query
         );
     }
+
     @Override
     public Doctor loginDoctor(String email, String password) {
         Doctor doctor = doctorRepository.findByProfessionalEmail(email);
-        if (doctor != null && doctor.getPassword().equals(password)) { // Plain text comparison; use hashing in production
+        if (doctor != null && doctor.getPassword().equals(password)) {
             return doctor;
         }
         return null;

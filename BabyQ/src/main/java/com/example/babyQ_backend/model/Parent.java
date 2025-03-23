@@ -28,6 +28,8 @@ public class Parent {
     private String password;
     private String childName;
 
+    private LocalDate registrationDate;
+
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
     @JsonManagedReference
     private List<Child> children;
@@ -66,5 +68,8 @@ public class Parent {
 
    public String getChildName() { return childName; }
     public void setChildName(String childName) { this.childName = childName; }
+
+    public LocalDate getRegistrationDate() { return registrationDate; }
+    public void setRegistrationDate(LocalDate registrationDate) { this.registrationDate = registrationDate; }
 
 }

@@ -14,6 +14,7 @@ public class ParentDTO {
     private String password;
     private List<ChildDTO> children; // Full child details
     private String childName;
+    private LocalDate registrationDate;
     //private List<MinimalChildDTO> children;
 
     // Getters and Setters
@@ -56,6 +57,13 @@ public class ParentDTO {
 
     public String getChildName() { return childName; }
     public void setChildName(String childName) { this.childName = childName; }
+
+    public LocalDate getRegistrationDate() {
+        return registrationDate;
+    }
+    public void setRegistrationDate(LocalDate registrationDate) {
+        this.registrationDate = registrationDate;
+    }
 
     // public List<MinimalChildDTO> getChildren() { return children; }
    // public void setChildren(List<MinimalChildDTO> children) { this.children = children; }

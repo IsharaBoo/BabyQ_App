@@ -1,5 +1,7 @@
 package com.example.babyQ_backend.dto;
 
+import java.time.LocalDate;
+
 public class DoctorDTO {
     private long id;
     private String firstName;
@@ -13,6 +15,7 @@ public class DoctorDTO {
     private String workplaceAddress;
     private String position;
     private String documentUrl;
+    private LocalDate registrationDate;
 
     // Getters and Setters
 
@@ -51,4 +54,7 @@ public class DoctorDTO {
 
     public String getDocumentUrl() { return documentUrl; }
     public void setDocumentUrl(String documentUrl) { this.documentUrl = documentUrl; }
+
+    public LocalDate getRegistrationDate() { return registrationDate; }
+    public void setRegistrationDate(LocalDate registrationDate) { this.registrationDate = registrationDate; }
 }

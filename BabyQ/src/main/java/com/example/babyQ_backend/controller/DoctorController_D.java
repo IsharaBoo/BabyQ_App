@@ -21,7 +21,7 @@ public class DoctorController_D {
     @Autowired
     private DoctorService doctorService;
 
-    @PostMapping
+    @PostMapping("/register")
     public ResponseEntity<DoctorDTO> registerDoctor(@RequestBody DoctorDTO doctorDTO) {
         try {
             Doctor doctor = mapToEntity(doctorDTO);
@@ -31,6 +31,7 @@ public class DoctorController_D {
             return ResponseEntity.status(500).body(null);
         }
     }
+
     @PostMapping("/upload")
     public ResponseEntity<Map<String, String>> uploadFile(@RequestParam("file") MultipartFile file) {
         try {
@@ -140,6 +141,7 @@ public class DoctorController_D {
         dto.setWorkplaceAddress(doctor.getWorkplaceAddress());
         dto.setPosition(doctor.getPosition());
         dto.setDocumentUrl(doctor.getDocumentUrl());
+        dto.setRegistrationDate(doctor.getRegistrationDate());
         return dto;
     }
 

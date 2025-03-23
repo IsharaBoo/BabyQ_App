@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
@@ -17,16 +18,14 @@ public class ParentServiceImpl implements ParentService {
     private ParentRepository parentRepository;
 
     @Autowired
-    private PasswordEncoder passwordEncoder;
+    private PasswordEncoder passwordEncoder; // Keep for reset hashing
 
     private final java.util.Map<String, String> resetCodes = new java.util.HashMap<>();
 
     @Override
     public Parent registerParent(Parent parent) {
-        String plainPassword = parent.getPassword();
-        String hashedPassword = passwordEncoder.encode(plainPassword);
-        System.out.println("Registering parent - Plain: " + plainPassword + ", Hashed: " + hashedPassword);
-        parent.setPassword(hashedPassword);
+        parent.setRegistrationDate(LocalDate.now()); // Set to current date on registration
+        parent.setPassword(parent.getPassword()); // Plain text as requested
         return parentRepository.save(parent);
     }
 
@@ -57,10 +56,7 @@ public class ParentServiceImpl implements ParentService {
                     existingParent.setAddress(parentDetails.getAddress());
                     existingParent.setPhoneNumber(parentDetails.getPhoneNumber());
                     existingParent.setEmail(parentDetails.getEmail());
-                    String plainPassword = parentDetails.getPassword();
-                    String hashedPassword = passwordEncoder.encode(plainPassword);
-                    System.out.println("Updating parent - Plain: " + plainPassword + ", Hashed: " + hashedPassword);
-                    existingParent.setPassword(hashedPassword);
+                    existingParent.setPassword(parentDetails.getPassword()); // Plain text
                     return parentRepository.save(existingParent);
                 })
                 .orElseThrow(() -> new IllegalArgumentException("Parent with ID " + id + " not found"));
@@ -89,8 +85,13 @@ public class ParentServiceImpl implements ParentService {
         Parent parent = parentOpt.get();
         System.out.println("Login attempt - Email: " + email);
         System.out.println("Input password: " + password);
-        System.out.println("Stored hash: " + parent.getPassword());
-        boolean matches = passwordEncoder.matches(password, parent.getPassword());
+        System.out.println("Stored password: " + parent.getPassword());
+        boolean matches;
+        if (parent.getPassword().startsWith("$2a$")) { // Hashed (from reset)
+            matches = passwordEncoder.matches(password, parent.getPassword());
+        } else { // Plain text
+            matches = parent.getPassword().equals(password);
+        }
         System.out.println("Password matches: " + matches);
         if (!matches) {
             throw new Exception("Invalid password");
@@ -117,7 +118,6 @@ public class ParentServiceImpl implements ParentService {
             throw new Exception("Email not found");
         }
         String storedCode = resetCodes.get(email);
-        System.out.println("Verifying - Email: " + email + ", Input code: " + code + ", Stored code: " + storedCode);
         return storedCode != null && storedCode.equals(code);
     }
 
@@ -128,7 +128,7 @@ public class ParentServiceImpl implements ParentService {
             throw new Exception("Email not found");
         }
         Parent parent = parentOpt.get();
-        String hashedPassword = passwordEncoder.encode(newPassword);
+        String hashedPassword = passwordEncoder.encode(newPassword); // Hash only on reset
         System.out.println("Reset password - Email: " + email + ", Plain: " + newPassword + ", Hashed: " + hashedPassword);
         parent.setPassword(hashedPassword);
         parentRepository.save(parent);

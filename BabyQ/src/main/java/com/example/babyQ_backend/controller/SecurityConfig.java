@@ -36,7 +36,8 @@ public class SecurityConfig {
                 "http://localhost:8081",  // React Native Metro Bundler
                 "http://localhost:8082",  // Spring Boot Backend
                 "http://10.0.2.2:8082",  // Android Emulator accessing localhost
-                "http://10.31.23.48:8082"    // Your local IP (physical devices)
+                "http://10.31.23.48:8082" ,   // Your local IP (physical devices)
+                "http://192.168.8.119:8081"
         ));
 
         // Allowed HTTP methods
