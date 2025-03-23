@@ -11,7 +11,9 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
 } from "react-native";
-import { useRouter } from "expo-router"; // No need for useLocalSearchParams
+import { useRouter } from "expo-router";
+import { BlurView } from "expo-blur"; // Requires expo-blur
+import FontAwesome from "react-native-vector-icons/FontAwesome"; // Requires react-native-vector-icons
 
 export default function NewPost() {
   const router = useRouter();
@@ -88,6 +90,28 @@ export default function NewPost() {
                 </TouchableOpacity>
               </View>
             </View>
+
+            {/* Navigation Bar */}
+            <BlurView intensity={20} style={styles.navbarContainer}>
+              <View style={styles.navbar}>
+                <TouchableOpacity style={styles.navItem} onPress={() => router.replace("/home")}>
+                  <FontAwesome name="home" size={22} color="#888" />
+                  <Text style={styles.navText}>Home</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.navItem} onPress={() => router.push("./community")}>
+                  <FontAwesome name="users" size={22} color="#2D4BC2" />
+                  <Text style={[styles.navText, styles.activeNavText]}>Community</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.navItem} onPress={() => router.push("./CHDR")}>
+                  <FontAwesome name="line-chart" size={22} color="#888" />
+                  <Text style={styles.navText}>Insights</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.navItem} onPress={() => router.push("./Channel")}>
+                  <FontAwesome name="file-text" size={22} color="#888" />
+                  <Text style={styles.navText}>Medical History</Text>
+                </TouchableOpacity>
+              </View>
+            </BlurView>
           </KeyboardAvoidingView>
         ) : (
           <View style={styles.background}>
@@ -120,6 +144,28 @@ export default function NewPost() {
                 <Text style={styles.postButtonText}>Post</Text>
               </TouchableOpacity>
             </View>
+
+            {/* Navigation Bar */}
+            <BlurView intensity={20} style={styles.navbarContainer}>
+              <View style={styles.navbar}>
+                <TouchableOpacity style={styles.navItem} onPress={() => router.replace("/home")}>
+                  <FontAwesome name="home" size={22} color="#888" />
+                  <Text style={styles.navText}>Home</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.navItem} onPress={() => router.push("./community")}>
+                  <FontAwesome name="users" size={22} color="#2D4BC2" />
+                  <Text style={[styles.navText, styles.activeNavText]}>Community</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.navItem} onPress={() => router.push("./CHDR")}>
+                  <FontAwesome name="line-chart" size={22} color="#888" />
+                  <Text style={styles.navText}>Insights</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.navItem} onPress={() => router.push("./Channel")}>
+                  <FontAwesome name="file-text" size={22} color="#888" />
+                  <Text style={styles.navText}>Medical History</Text>
+                </TouchableOpacity>
+              </View>
+            </BlurView>
           </View>
         )}
       </ContentWrapper>
@@ -212,5 +258,32 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     letterSpacing: 0.5,
+  },
+  navbarContainer: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 60,
+    backgroundColor: "rgba(255, 255, 255, 0.9)", // Fallback for non-blur
+  },
+  navbar: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
+    height: "100%",
+  },
+  navItem: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  navText: {
+    fontSize: 12,
+    color: "#888",
+    marginTop: 4,
+  },
+  activeNavText: {
+    color: "#2D4BC2",
+    fontWeight: "bold",
   },
 });
