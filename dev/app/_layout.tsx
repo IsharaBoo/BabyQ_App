@@ -62,6 +62,9 @@ export default function RootLayout() {
       <Stack.Screen name="Feeding" options={{ headerShown: false }} />
       <Stack.Screen name="mental-health" options={{ headerShown: false }} />
       <Stack.Screen name="NewPost" options={{ headerShown: false }} />
+      <Stack.Screen name="profile" options={{ headerShown: false }} />
+      <Stack.Screen name="EditProfileScreen" options={{ headerShown: false }} />
+      <Stack.Screen name="MyAppointmentsScreen" options={{ headerShown: false }} />
       
     </Stack>
   );

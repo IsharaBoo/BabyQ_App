@@ -13,6 +13,8 @@ import {
 } from "react-native";
 import React, { useState, useEffect } from "react";
 import { useRouter, useFocusEffect } from "expo-router";
+import { BlurView } from "expo-blur"; // Requires expo-blur
+import FontAwesome from "react-native-vector-icons/FontAwesome"; // Requires react-native-vector-icons
 
 interface Post {
   id: string;
@@ -186,9 +188,31 @@ export default function CommunityPage() {
             keyExtractor={(item) => item.id}
             renderItem={renderPost}
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: 30 }}
+            contentContainerStyle={{ paddingBottom: 80 }} // Adjusted for navbar height
           />
         </KeyboardAvoidingView>
+
+        {/* Navigation Bar */}
+        <BlurView intensity={20} style={styles.navbarContainer}>
+          <View style={styles.navbar}>
+            <TouchableOpacity style={styles.navItem} onPress={() => router.replace("/home")}>
+              <FontAwesome name="home" size={22} color="#888" />
+              <Text style={styles.navText}>Home</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.navItem} onPress={() => router.push("./community")}>
+              <FontAwesome name="users" size={22} color="#2D4BC2" />
+              <Text style={[styles.navText, styles.activeNavText]}>Community</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.navItem} onPress={() => router.push("./CHDR")}>
+              <FontAwesome name="line-chart" size={22} color="#888" />
+              <Text style={styles.navText}>Insights</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.navItem} onPress={() => router.push("./Channel")}>
+              <FontAwesome name="file-text" size={22} color="#888" />
+              <Text style={styles.navText}>Medical History</Text>
+            </TouchableOpacity>
+          </View>
+        </BlurView>
       </SafeAreaView>
     </TouchableWithoutFeedback>
   );
@@ -197,8 +221,8 @@ export default function CommunityPage() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F7FAFD", 
-    paddingTop: 60, 
+    backgroundColor: "#F7FAFD",
+    paddingTop: 60,
   },
   flexContainer: {
     flex: 1,
@@ -206,15 +230,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   inputBox: {
-    width: 300, 
-    height: 50, 
-    backgroundColor: "#4B5EFC", 
+    width: 300,
+    height: 50,
+    backgroundColor: "#4B5EFC",
     justifyContent: "center",
     alignItems: "center",
-    borderRadius: 20, 
-    marginBottom: 25, 
-    borderWidth: 1, 
-    borderColor: "#FFFFFF", 
+    borderRadius: 20,
+    marginBottom: 25,
+    borderWidth: 1,
+    borderColor: "#FFFFFF",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
@@ -229,18 +253,18 @@ const styles = StyleSheet.create({
   },
   newPostText: {
     color: "#FFFFFF",
-    fontSize: 18, 
-    fontWeight: "600", 
+    fontSize: 18,
+    fontWeight: "600",
     letterSpacing: 0.5,
   },
   postContainer: {
-    width: 350, 
-    backgroundColor: "#FFFFFF", 
-    padding: 20, 
-    borderRadius: 15, 
-    marginBottom: 15, 
-    borderWidth: 1, 
-    borderColor: "#E2E8F0", 
+    width: 350,
+    backgroundColor: "#FFFFFF",
+    padding: 20,
+    borderRadius: 15,
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.15,
@@ -253,30 +277,30 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   avatar: {
-    width: 45, 
+    width: 45,
     height: 45,
     borderRadius: 22.5,
     justifyContent: "center",
     alignItems: "center",
     marginRight: 12,
-    borderWidth: 2, 
+    borderWidth: 2,
     borderColor: "#FFFFFF",
   },
   avatarText: {
     color: "#FFFFFF",
-    fontSize: 22, 
+    fontSize: 22,
     fontWeight: "bold",
   },
   postOwner: {
-    fontWeight: "700", 
-    fontSize: 17, 
-    color: "#1A202C", 
+    fontWeight: "700",
+    fontSize: 17,
+    color: "#1A202C",
   },
   postContent: {
-    fontSize: 18, 
-    color: "#2D3748", 
+    fontSize: 18,
+    color: "#2D3748",
     marginBottom: 15,
-    lineHeight: 24, 
+    lineHeight: 24,
   },
   actions: {
     flexDirection: "row",
@@ -292,10 +316,10 @@ const styles = StyleSheet.create({
     padding: 5,
   },
   actionIcon: {
-    fontSize: 24, 
+    fontSize: 24,
   },
   actionText: {
-    color: "#4B5EFC", 
+    color: "#4B5EFC",
     fontSize: 14,
     marginTop: 5,
     fontWeight: "500",
@@ -303,18 +327,18 @@ const styles = StyleSheet.create({
   commentSection: {
     marginTop: 15,
     padding: 10,
-    backgroundColor: "#F1F5F9", 
+    backgroundColor: "#F1F5F9",
     borderRadius: 12,
     borderWidth: 1,
     borderColor: "#E2E8F0",
   },
   comment: {
-    fontSize: 15, 
+    fontSize: 15,
     padding: 8,
     backgroundColor: "#FFFFFF",
     marginVertical: 3,
     borderRadius: 8,
-    color: "#2D3748", 
+    color: "#2D3748",
   },
   commentInputContainer: {
     flexDirection: "row",
@@ -334,7 +358,7 @@ const styles = StyleSheet.create({
     color: "#1A202C",
   },
   commentPostButton: {
-    backgroundColor: "#4B5EFC", 
+    backgroundColor: "#4B5EFC",
     paddingVertical: 8,
     paddingHorizontal: 15,
     borderRadius: 8,
@@ -344,5 +368,32 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 14,
     fontWeight: "600",
+  },
+  navbarContainer: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 60,
+    backgroundColor: "rgba(255, 255, 255, 0.9)", // Fallback for non-blur
+  },
+  navbar: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
+    height: "100%",
+  },
+  navItem: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  navText: {
+    fontSize: 12,
+    color: "#888",
+    marginTop: 4,
+  },
+  activeNavText: {
+    color: "#2D4BC2",
+    fontWeight: "bold",
   },
 });
