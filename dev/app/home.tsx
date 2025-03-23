@@ -428,8 +428,8 @@ export default function HomePage() {
             <TouchableOpacity
               style={styles.profileButton}
               onPress={() => {
-                if (user.role === 'Parent') {
-                  router.push('/parentProfile' as any);
+                if (user.role === 'Parent/Guardian') {
+                  router.push('/profile');
                 } else if (user.role === 'Doctor') {
                   router.push('/Dprofile');
                 } else {

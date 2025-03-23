@@ -15,6 +15,7 @@ import { Rating } from 'react-native-elements';
 import { Calendar } from 'react-native-calendars';
 import { Picker } from '@react-native-picker/picker';
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width, height } = Dimensions.get('window');
 
@@ -39,28 +40,42 @@ const App = () => {
   const [reviewText, setReviewText] = useState('');
   const [rating, setRating] = useState(0);
   const [userName, setUserName] = useState('');
+  const [patientId, setPatientId] = useState(null); // Add patientId state
   const [page, setPage] = useState('home');
   const [bookedTimes, setBookedTimes] = useState({});
 
-  // Static list of doctors
   const doctors = [
     { id: 1, name: 'Dr. John Mayor', specialty: 'Pediatrics' },
     { id: 2, name: 'Dr. Jane Smith', specialty: 'Cardiology' },
     { id: 3, name: 'Dr. Mike Johnson', specialty: 'Dermatology' },
   ];
 
-  // Fetch booked times from backend on mount
+  // Fetch patientId and booked times on mount
   useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const savedUserData = await AsyncStorage.getItem('userData');
+        if (savedUserData) {
+          const userData = JSON.parse(savedUserData);
+          setPatientId(userData.id); // Assuming userData has an 'id' field
+          setUserName(userData.name || 'Anonymous');
+        }
+      } catch (error) {
+        console.error('Failed to fetch user data:', error);
+      }
+    };
+
     const fetchBookedTimes = async () => {
       try {
         const response = await axios.get(`${backendUrl}/api/appointments/booked-times`);
-        setBookedTimes(response.data); // Expected format: { "2025-03-24": { "10:00 AM": "Dr. John Mayor" } }
+        setBookedTimes(response.data);
       } catch (error) {
         console.error('Failed to fetch booked times:', error);
         Alert.alert('Error', 'Unable to load booked times from the server.');
       }
     };
 
+    fetchUserData();
     fetchBookedTimes();
   }, []);
 
@@ -70,20 +85,18 @@ const App = () => {
       return;
     }
 
-    // Check if the time is already booked
     if (bookedTimes[selectedDate] && bookedTimes[selectedDate][selectedTime]) {
       Alert.alert('Error', 'This time is already booked. Please select another time.');
       return;
     }
 
-    // Send appointment data to backend
     try {
       const appointmentData = {
         doctorId: selectedDoctor.id,
         doctorName: selectedDoctor.name,
         date: selectedDate,
         time: selectedTime,
-        userName: userName || 'Anonymous', // Optional: Add user ID if authenticated
+        userName: userName || 'Anonymous',
       };
 
       const response = await axios.post(`${backendUrl}/api/appointments`, appointmentData, {
@@ -100,7 +113,7 @@ const App = () => {
           'Success',
           `Appointment booked!\n\nDoctor: ${selectedDoctor.name}\nDate: ${selectedDate}\nTime: ${selectedTime}`
         );
-        setPage('doctorOptions'); // Return to doctor options
+        setPage('doctorOptions');
       }
     } catch (error) {
       console.error('Booking failed:', {
@@ -112,18 +125,43 @@ const App = () => {
     }
   };
 
-  const submitReview = () => {
+  const submitReview = async () => {
     if (!reviewText || rating === 0) {
       Alert.alert('Error', 'Please provide a review and a rating.');
       return;
     }
-    setReviews((prevReviews) => ({
-      ...prevReviews,
-      [selectedDoctor.name]: { reviewText, rating },
-    }));
-    setReviewText('');
-    setRating(0);
-    Alert.alert('Success', 'Review submitted!');
+
+    try {
+      const reviewData = {
+        doctorId: selectedDoctor.id,
+        doctorName: selectedDoctor.name,
+        patientId: patientId, // Include patientId if available
+        reviewText: reviewText,
+        rating: rating,
+        userName: userName || 'Anonymous',
+      };
+
+      const response = await axios.post(`${backendUrl}/api/reviews`, reviewData, {
+        timeout: 5000,
+      });
+
+      if (response.status === 201 || response.status === 200) {
+        setReviews((prevReviews) => ({
+          ...prevReviews,
+          [selectedDoctor.name]: { reviewText, rating },
+        }));
+        setReviewText('');
+        setRating(0);
+        Alert.alert('Success', 'Review submitted successfully!');
+      }
+    } catch (error) {
+      console.error('Review submission failed:', {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data,
+      });
+      Alert.alert('Error', 'Failed to submit review. Please try again.');
+    }
   };
 
   return (
