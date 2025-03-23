@@ -1,5 +1,8 @@
-// app/newborn-care.tsx
-import { View, Text, ScrollView, Image, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, Image, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { BlurView } from 'expo-blur';
+import { FontAwesome } from '@expo/vector-icons';
+import React from 'react';
 
 const careCategories = [
   {
@@ -22,7 +25,7 @@ const careCategories = [
       'Maintain room temperature between 68-72°F',
       'Share room but not bed with parents',
     ],
-    image: 'https://images.unsplash.com/photo-1590649384683-f20a862ede96?auto=format&fit=crop&q=80&w=800',
+    image: 'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?auto=format&fit=crop&q=80&w=800',
   },
   {
     title: 'Health Monitoring',
@@ -49,33 +52,66 @@ const careCategories = [
 ];
 
 export default function NewbornCare() {
+  const navigation = useNavigation();
+
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.title}>Newborn Care Guidelines</Text>
+    <View style={styles.container}>
+      <ScrollView style={styles.content}>
+        <Text style={styles.title}>Newborn Care Guidelines</Text>
 
-      <View style={styles.grid}>
-        {careCategories.map((category) => (
-          <View key={category.title} style={styles.card}>
-            <Image source={{ uri: category.image }} style={styles.cardImage} />
-            <Text style={styles.cardTitle}>{category.title}</Text>
+        <View style={styles.grid}>
+          {careCategories.map((category) => (
+            <View key={category.title} style={styles.card}>
+              <Image source={{ uri: category.image }} style={styles.cardImage} />
+              <Text style={styles.cardTitle}>{category.title}</Text>
 
-            <View style={styles.cardContent}>
-              {category.items.map((item) => (
-                <Text key={item} style={styles.listItem}>• {item}</Text>
-              ))}
+              {/* Heading for each category */}
+              <Text style={styles.ageGroupHeading}>{category.title}</Text>
+
+              <View style={styles.cardContent}>
+                {category.items.map((item) => (
+                  <Text key={item} style={styles.listItem}>• {item}</Text>
+                ))}
+              </View>
             </View>
-          </View>
-        ))}
-      </View>
-    </ScrollView>
+          ))}
+        </View>
+      </ScrollView>
+
+      {/* Bottom Navbar */}
+      <BlurView intensity={20} style={styles.navbarContainer}>
+        <View style={styles.navbar}>
+          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Home' as never)}>
+            <FontAwesome name="home" size={22} color="#2D4BC2" />
+            <Text style={[styles.navText, styles.activeNavText]}>Home</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.navItem} onPress={() => Alert.alert('Info', 'Community page not available')}>
+            <FontAwesome name="users" size={22} color="#888" />
+            <Text style={styles.navText}>Community</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Insights' as never)}>
+            <FontAwesome name="line-chart" size={22} color="#888" />
+            <Text style={styles.navText}>Insights</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('MedicalHistory' as never)}>
+            <FontAwesome name="file-text" size={22} color="#888" />
+            <Text style={styles.navText}>Medical History</Text>
+          </TouchableOpacity>
+        </View>
+      </BlurView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
     backgroundColor: '#fff',
+  },
+  content: {
+    flex: 1,
+    padding: 16,
+    marginBottom: 60, // Space for navbar
   },
   title: {
     fontSize: 24,
@@ -114,5 +150,38 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#555',
     marginBottom: 4,
+  },
+  navbarContainer: {
+    position: 'absolute',
+    bottom: 0,
+    width: '100%',
+    height: 60,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  navbar: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    paddingVertical: 10,
+    width: '100%',
+  },
+  navItem: {
+    alignItems: 'center',
+  },
+  navText: {
+    fontSize: 12,
+    color: '#888',
+    marginTop: 4,
+  },
+  activeNavText: {
+    color: '#2D4BC2',
+    fontWeight: 'bold',
+  },
+  ageGroupHeading: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1a73e8',
+    marginBottom: 8,
   },
 });

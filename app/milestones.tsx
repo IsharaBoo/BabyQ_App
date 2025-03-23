@@ -1,8 +1,20 @@
-import { View, Text, ScrollView, Image, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
+import { View, Text, ScrollView, Image, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import React, { useState } from 'react';
+import { useNavigation } from '@react-navigation/native';
+import { BlurView } from 'expo-blur';
+import { FontAwesome } from '@expo/vector-icons';
 
+type MilestoneCategory = 'social' | 'movement' | 'cognitive';
 
-const milestones = [
+type Milestone = {
+  age: string;
+  social: string[];
+  movement: string[];
+  cognitive: string[];
+  image: string;
+};
+
+const milestones: Milestone[] = [
   {
     age: '2 Months',
     social: ['Begins to smile at people', 'Tries to look at parent'],
@@ -27,54 +39,85 @@ const milestones = [
 ];
 
 export default function Milestones() {
-  const [completedMilestones, setCompletedMilestones] = useState({});
+  const navigation = useNavigation();
+  const [completedMilestones, setCompletedMilestones] = useState<Record<string, string>>({});
 
-  const handleComplete = (age: string, category:string, item: string) => {
+  const handleComplete = (age: string, category: MilestoneCategory, item: string) => {
     const date = new Date().toISOString().split('T')[0]; // Get today's date in YYYY-MM-DD format
-    setCompletedMilestones(prev => ({
+    setCompletedMilestones((prev) => ({
       ...prev,
       [`${age}-${category}-${item}`]: date,
     }));
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.title}>Development Milestones</Text>
-      {milestones.map((milestone) => (
-        <View key={milestone.age} style={styles.card}>
-          <Image source={{ uri: milestone.image }} style={styles.cardImage} />
-          <Text style={styles.cardTitle}>{milestone.age}</Text>
+    <View style={styles.container}>
+      <ScrollView style={styles.content}>
+        <Text style={styles.title}>Development Milestones</Text>
+        {milestones.map((milestone) => (
+          <View key={milestone.age} style={styles.card}>
+            <Image source={{ uri: milestone.image }} style={styles.cardImage} />
+            <Text style={styles.cardTitle}>{milestone.age}</Text>
 
-          <View style={styles.cardContent}>
-            {['social', 'movement', 'cognitive'].map((category) => (
-              <View key={category} style={styles.column}>
-                <Text style={styles.columnTitle}>{category.charAt(0).toUpperCase() + category.slice(1)}</Text>
-                {milestone[category].map((item) => (
-                  <View key={item} style={styles.milestoneItem}>
-                    <Text style={styles.listItem}>• {item}</Text>
-                    {completedMilestones[`${milestone.age}-${category}-${item}`] ? (
-                      <Text style={styles.dateText}>Completed: {completedMilestones[`${milestone.age}-${category}-${item}`]}</Text>
-                    ) : (
-                      <TouchableOpacity onPress={() => handleComplete(milestone.age, category, item)}>
-                        <Text style={styles.completeButton}>Mark as Completed</Text>
-                      </TouchableOpacity>
-                    )}
-                  </View>
-                ))}
-              </View>
-            ))}
+            <View style={styles.cardContent}>
+              {(['social', 'movement', 'cognitive'] as MilestoneCategory[]).map((category) => (
+                <View key={category} style={styles.column}>
+                  <Text style={styles.columnTitle}>{category.charAt(0).toUpperCase() + category.slice(1)}</Text>
+                  {(milestone[category] as string[]).map((item: string) => (
+                    <View key={item} style={styles.milestoneItem}>
+                      <Text style={styles.listItem}>• {item}</Text>
+                      {completedMilestones[`${milestone.age}-${category}-${item}`] ? (
+                        <Text style={styles.dateText}>
+                          Completed: {completedMilestones[`${milestone.age}-${category}-${item}`]}
+                        </Text>
+                      ) : (
+                        <TouchableOpacity onPress={() => handleComplete(milestone.age, category, item)}>
+                          <Text style={styles.completeButton}>Mark as Completed</Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  ))}
+                </View>
+              ))}
+            </View>
           </View>
+        ))}
+      </ScrollView>
+
+      {/* Bottom Navbar */}
+      <BlurView intensity={20} style={styles.navbarContainer}>
+        <View style={styles.navbar}>
+          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Home' as never)}>
+            <FontAwesome name="home" size={22} color="#2D4BC2" />
+            <Text style={[styles.navText, styles.activeNavText]}>Home</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.navItem} onPress={() => Alert.alert('Info', 'Community page not available')}>
+            <FontAwesome name="users" size={22} color="#888" />
+            <Text style={styles.navText}>Community</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Insights' as never)}>
+            <FontAwesome name="line-chart" size={22} color="#888" />
+            <Text style={styles.navText}>Insights</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('MedicalHistory' as never)}>
+            <FontAwesome name="file-text" size={22} color="#888" />
+            <Text style={styles.navText}>Medical History</Text>
+          </TouchableOpacity>
         </View>
-      ))}
-    </ScrollView>
+      </BlurView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
     backgroundColor: '#fff',
+  },
+  content: {
+    flex: 1,
+    padding: 16,
+    marginBottom: 60, // Space for navbar
   },
   title: {
     fontSize: 24,
@@ -120,8 +163,6 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   milestoneItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 8,
   },
@@ -129,10 +170,38 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#007BFF',
     fontWeight: 'bold',
+    gap:0,
   },
   dateText: {
     fontSize: 12,
     color: '#28a745',
+    fontWeight: 'bold',
+  },
+  navbarContainer: {
+    position: 'absolute',
+    bottom: 0,
+    width: '100%',
+    height: 60,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  navbar: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    paddingVertical: 10,
+    width: '100%',
+  },
+  navItem: {
+    alignItems: 'center',
+  },
+  navText: {
+    fontSize: 12,
+    color: '#888',
+    marginTop: 4,
+  },
+  activeNavText: {
+    color: '#2D4BC2',
     fontWeight: 'bold',
   },
 });

@@ -1,5 +1,7 @@
-// app/mental-health.tsx
-import { View, Text, ScrollView, Image, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, Image, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { FontAwesome } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
+import { useNavigation } from '@react-navigation/native';
 
 const mentalHealthAdvice = [
   {
@@ -53,49 +55,79 @@ const mentalHealthAdvice = [
 ];
 
 export default function MentalHealth() {
+  const navigation = useNavigation();
+
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.title}>Child Mental Health Guidance</Text>
+    <View style={styles.wrapper}>
+      <ScrollView style={styles.container}>
+        <Text style={styles.title}>Child Mental Health Guidance</Text>
 
-      {mentalHealthAdvice.map((stage) => (
-        <View key={stage.stage} style={styles.card}>
-          <Image source={{ uri: stage.image }} style={styles.cardImage} />
-          <Text style={styles.cardTitle}>{stage.stage}</Text>
+        {mentalHealthAdvice.map((stage) => (
+          <View key={stage.stage} style={styles.card}>
+            <Image source={{ uri: stage.image }} style={styles.cardImage} />
+            <Text style={styles.cardTitle}>{stage.stage}</Text>
 
-          <View style={styles.cardContent}>
-            <View style={styles.column}>
-              <Text style={styles.columnTitle}>Warning Signs</Text>
-              {stage.signs.map((item) => (
-                <Text key={item} style={styles.listItem}>• {item}</Text>
-              ))}
-            </View>
+            <View style={styles.cardContent}>
+              <View style={styles.column}>
+                <Text style={styles.columnTitle}>Warning Signs</Text>
+                {stage.signs.map((item) => (
+                  <Text key={item} style={styles.listItem}>• {item}</Text>
+                ))}
+              </View>
 
-            <View style={styles.column}>
-              <Text style={styles.columnTitle}>Recommendations</Text>
-              {stage.recommendations.map((item) => (
-                <Text key={item} style={styles.listItem}>• {item}</Text>
-              ))}
+              <View style={styles.column}>
+                <Text style={styles.columnTitle}>Recommendations</Text>
+                {stage.recommendations.map((item) => (
+                  <Text key={item} style={styles.listItem}>• {item}</Text>
+                ))}
+              </View>
             </View>
           </View>
-        </View>
-      ))}
+        ))}
 
-      <View style={styles.tipBox}>
-        <Text style={styles.tipTitle}>When to Seek Professional Help</Text>
-        <Text style={styles.tipText}>• Persistent changes in behavior or mood</Text>
-        <Text style={styles.tipText}>• Significant impact on daily functioning</Text>
-        <Text style={styles.tipText}>• Concerns about development or social interaction</Text>
-        <Text style={styles.tipText}>• Family history of mental health conditions</Text>
-      </View>
-    </ScrollView>
+        <View style={styles.tipBox}>
+          <Text style={styles.tipTitle}>When to Seek Professional Help</Text>
+          <Text style={styles.tipText}>• Persistent changes in behavior or mood</Text>
+          <Text style={styles.tipText}>• Significant impact on daily functioning</Text>
+          <Text style={styles.tipText}>• Concerns about development or social interaction</Text>
+          <Text style={styles.tipText}>• Family history of mental health conditions</Text>
+        </View>
+      </ScrollView>
+
+      {/* Bottom Navbar */}
+      <BlurView intensity={20} style={styles.navbarContainer}>
+        <View style={styles.navbar}>
+          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Home')}>
+            <FontAwesome name="home" size={22} color="#2D4BC2" />
+            <Text style={[styles.navText, styles.activeNavText]}>Home</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.navItem} onPress={() => Alert.alert('Info', 'Community page not available')}>
+            <FontAwesome name="users" size={22} color="#888" />
+            <Text style={styles.navText}>Community</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Insights')}>
+            <FontAwesome name="line-chart" size={22} color="#888" />
+            <Text style={styles.navText}>Insights</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('MedicalHistory')}>
+            <FontAwesome name="file-text" size={22} color="#888" />
+            <Text style={styles.navText}>Medical History</Text>
+          </TouchableOpacity>
+        </View>
+      </BlurView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  wrapper: {
+    flex: 1,
+  },
   container: {
     flex: 1,
     padding: 16,
     backgroundColor: '#fff',
+    paddingBottom: 70, // Add space at the bottom to avoid overlap with the navbar
   },
   title: {
     fontSize: 24,
@@ -157,5 +189,31 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#555',
     marginBottom: 4,
+  },
+  navbarContainer: {
+    position: 'absolute',
+    bottom: 0,
+    width: '100%',
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderTopWidth: 1,
+    borderTopColor: '#ddd',
+  },
+  navbar: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingVertical: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+  },
+  navItem: {
+    alignItems: 'center',
+  },
+  navText: {
+    fontSize: 12,
+    color: '#888',
+    marginTop: 4,
+  },
+  activeNavText: {
+    color: '#2D4BC2',
+    fontWeight: 'bold',
   },
 });
