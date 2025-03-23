@@ -18,13 +18,15 @@ const MedicalHistoryPage = () => {
   };
  
 
+  // const goToViewReports = () => {
+  //   WebBrowser.openBrowserAsync('http://localhost:5173/'); // This will open in the browser
+  // };
+
+  
+
   const goToViewReports = () => {
-    WebBrowser.openBrowserAsync('http://localhost:5173/'); // This will open in the browser
+    WebBrowser.openBrowserAsync('http://localhost:3000/reports'); // This will open in the browser
   };
-
-
-
-
 
 
 
