@@ -55,6 +55,7 @@ export default function RootLayout() {
       <Stack.Screen name="doctorCategory" options={{ headerShown: false }} />
       <Stack.Screen name="doctorProfile" options={{ headerShown: false }} />
       <Stack.Screen name="doctorSearchResults" options={{ headerShown: false }} />
+      <Stack.Screen name="DProfile" options={{ headerShown: false }} />
 
     </Stack>
   );

@@ -26,12 +26,10 @@ const { width } = Dimensions.get('window');
 const getBackendUrl = () => {
   if (Platform.OS === 'web') {
     return 'http://localhost:8082';
-    //return  'http://10.31.23.48:8082';
   } else if (Platform.OS === 'android') {
     return 'http://10.0.2.2:8082'; // Emulator
   } else {
-    return 'http://192.168.8.119:8082'; // iOS and physical devices
-    //return 'http://10.31.23.48:8082';
+    return 'http://192.168.1.100:8082'; // iOS and physical devices - replace with your IP
   }
 };
 
@@ -39,7 +37,7 @@ const backendUrl = getBackendUrl();
 
 export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<any[]>([]); // State for search results
+  const [searchResults, setSearchResults] = useState<any[]>([]);
   const [greeting, setGreeting] = useState('Good morning');
   const [user, setUser] = useState<any>(null);
   const router = useRouter();
@@ -47,6 +45,7 @@ export default function HomePage() {
 
   const fadeAnim = useState(new Animated.Value(0))[0];
   const slideAnim = useState(new Animated.Value(50))[0];
+  const bounceAnim = useState(new Animated.Value(1))[0]; // For button animation
 
   useEffect(() => {
     const checkLoginState = async () => {
@@ -55,7 +54,7 @@ export default function HomePage() {
         const userData = JSON.parse(savedUserData);
         setUser(userData);
       } else {
-        router.replace('/login');
+        router.push('/login');
       }
     };
 
@@ -78,6 +77,23 @@ export default function HomePage() {
         useNativeDriver: true,
       }),
     ]).start();
+
+    // Button bounce animation loop
+    const bounce = () => {
+      Animated.sequence([
+        Animated.timing(bounceAnim, {
+          toValue: 1.1,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(bounceAnim, {
+          toValue: 1,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+      ]).start(() => bounce());
+    };
+    bounce();
   }, []);
 
   const handleSearch = async () => {
@@ -93,7 +109,7 @@ export default function HomePage() {
         timeout: 5000,
       });
       console.log('Search results:', response.data);
-      setSearchResults(response.data); // Store results in state
+      setSearchResults(response.data);
     } catch (error: any) {
       console.error('Search failed:', {
         message: error.message,
@@ -101,7 +117,7 @@ export default function HomePage() {
         data: error.response?.data,
       });
       Alert.alert('Search Failed', 'Unable to fetch results. Please try again.');
-      setSearchResults([]); // Clear results on failure
+      setSearchResults([]);
     }
   };
 
@@ -110,7 +126,7 @@ export default function HomePage() {
   };
 
   const handlePress = (url: string) => {
-    Linking.openURL(url);
+    Linking.openURL(url).catch((err) => console.error('Failed to open URL:', err));
   };
 
   const handleLogout = async () => {
@@ -122,6 +138,10 @@ export default function HomePage() {
     } catch (error) {
       console.error('Failed to logout:', error);
     }
+  };
+
+  const handleBookAppointment = () => {
+    router.push('/booking' as any); // Adjust route if different
   };
 
   const renderDoctorResult = ({ item }: { item: any }) => (
@@ -143,11 +163,36 @@ export default function HomePage() {
   ];
 
   const ads = [
-    { id: '5', image: require('../assets/images/ad5.png'), title: 'Child Healthcare Packages' },
-    { id: '2', image: require('../assets/images/ad2.png'), title: 'Annual Checkup Discount' },
-    { id: '1', image: require('../assets/images/add1.png'), title: 'Health Insurance Plans' },
-    { id: '3', image: require('../assets/images/ad3.png'), title: 'Mental Health Services' },
-    { id: '4', image: require('../assets/images/ad1.png'), title: 'Offers' },
+    {
+      id: '5',
+      image: require('../assets/images/ad5.png'),
+      title: 'Child Healthcare Packages',
+      url: 'https://softlogiclife.lk/products/good-health-series-child-plan/',
+    },
+    {
+      id: '2',
+      image: require('../assets/images/ad2.png'),
+      title: 'Annual Checkup Discount',
+      url: 'https://kidshealth.org/en/parents/checkup-hospital.html',
+    },
+    {
+      id: '1',
+      image: require('../assets/images/add1.png'),
+      title: 'Health Insurance Plans',
+      url: 'https://www.healthcare.gov/coverage/what-marketplace-plans-cover/',
+    },
+    {
+      id: '3',
+      image: require('../assets/images/ad3.png'),
+      title: 'Mental Health Services',
+      url: 'https://www.nimh.nih.gov/health/topics/child-and-adolescent-mental-health',
+    },
+    {
+      id: '4',
+      image: require('../assets/images/ad1.png'),
+      title: 'Offers',
+      url: 'https://example.com/babyq-offers',
+    },
   ];
 
   const news = [
@@ -212,7 +257,7 @@ export default function HomePage() {
           </View>
           <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
             <LinearGradient
-              colors={['#2D4BC2', '#475FD3']}
+              colors={['#2D4BC2', '#2D4BC2']}
               style={styles.searchButtonGradient}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
@@ -222,7 +267,30 @@ export default function HomePage() {
           </TouchableOpacity>
         </Animated.View>
 
-        {/* Search Results Section */}
+        <Animated.View
+          style={[
+            styles.bookAppointmentContainer,
+            { transform: [{ scale: bounceAnim }] },
+          ]}
+        >
+          <TouchableOpacity
+            style={styles.bookAppointmentButton}
+            onPress={handleBookAppointment}
+          >
+            <LinearGradient
+              colors={['#2D4BC2', '#8A2BE2', '#FF69B4']} // Blue to Purple to Pink
+              style={styles.bookAppointmentButtonGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
+              <View style={styles.bookAppointmentContent}>
+                <FontAwesome5 name="calendar-alt" size={20} color="#FFFFFF" style={styles.bookIcon} />
+                <Text style={styles.bookAppointmentButtonText}>Book An Appointment!</Text>
+              </View>
+            </LinearGradient>
+          </TouchableOpacity>
+        </Animated.View>
+
         {searchResults.length > 0 ? (
           <View style={styles.sectionContainer}>
             <Text style={styles.sectionTitle}>Search Results for "{searchQuery}"</Text>
@@ -230,7 +298,7 @@ export default function HomePage() {
               data={searchResults}
               keyExtractor={(item) => item.id.toString()}
               renderItem={renderDoctorResult}
-              scrollEnabled={false} // Disable scrolling within FlatList to use parent ScrollView
+              scrollEnabled={false}
             />
           </View>
         ) : searchQuery.trim() && searchResults.length === 0 ? (
@@ -247,7 +315,10 @@ export default function HomePage() {
             showsHorizontalScrollIndicator={false}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
-              <TouchableOpacity style={styles.adCard}>
+              <TouchableOpacity
+                style={styles.adCard}
+                onPress={() => handlePress(item.url)}
+              >
                 <Image source={item.image} style={styles.adImage} />
                 <View style={styles.adOverlay}>
                   <Text style={styles.adTitle}>{item.title}</Text>
@@ -333,9 +404,9 @@ export default function HomePage() {
                 <Text style={styles.profileValue}>{user.role}</Text>
               </View>
               <View style={styles.profileItem}>
-  <Text style={styles.profileLabel}>Children:</Text>
-  <Text style={styles.profileValue}>{user.childName}</Text>
-</View>
+                <Text style={styles.profileLabel}>Children:</Text>
+                <Text style={styles.profileValue}>{user.childName || 'N/A'}</Text>
+              </View>
               <View style={styles.profileItem}>
                 <Text style={styles.profileLabel}>Registered On:</Text>
                 <Text style={styles.profileValue}>{user.registrationDate}</Text>
@@ -356,9 +427,17 @@ export default function HomePage() {
 
             <TouchableOpacity
               style={styles.profileButton}
-              onPress={() => router.push('/profile' as any)}
+              onPress={() => {
+                if (user.role === 'Parent/Guardian') {
+                  router.push('/profile' as any);
+                } else if (user.role === 'Doctor') {
+                  router.push('/Dprofile' as any);
+                } else {
+                  Alert.alert('Error', 'Unable to determine profile type.');
+                }
+              }}
             >
-              <Text style={styles.profileButtonText}>Edit Your Profile</Text>
+              <Text style={styles.profileButtonText}>Go to Profile</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
               <Text style={styles.logoutButtonText}>Logout</Text>
@@ -375,15 +454,15 @@ export default function HomePage() {
             <FontAwesome name="home" size={22} color="#2D4BC2" />
             <Text style={[styles.navText, styles.activeNavText]}>Home</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.navItem} onPress={() => router.replace('/community' as any)}>
+          <TouchableOpacity style={styles.navItem} onPress={() => router.push('./community')}>
             <FontAwesome name="users" size={22} color="#888" />
             <Text style={styles.navText}>Community</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.navItem} onPress={() => router.replace('/Insights' as any)}>
+          <TouchableOpacity style={styles.navItem} onPress={() => router.push('./CHDR')}>
             <FontAwesome name="line-chart" size={22} color="#888" />
             <Text style={styles.navText}>Insights</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.navItem} onPress={() => router.replace('/MedicalHistory' as any)}>
+          <TouchableOpacity style={styles.navItem} onPress={() => router.push('./Channel')}>
             <FontAwesome name="file-text" size={22} color="#888" />
             <Text style={styles.navText}>Medical History</Text>
           </TouchableOpacity>
@@ -476,6 +555,41 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 15,
     fontWeight: '600',
+  },
+  bookAppointmentContainer: {
+    marginBottom: 24,
+    alignItems: 'center',
+  },
+  bookAppointmentButton: {
+    borderRadius: 20,
+    overflow: 'hidden',
+    shadowColor: '#8A2BE2',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.5,
+    shadowRadius: 10,
+    elevation: 5,
+  },
+  bookAppointmentButtonGradient: {
+    paddingVertical: 14,
+    paddingHorizontal: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+  },
+  bookAppointmentContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  bookIcon: {
+    marginRight: 10,
+  },
+  bookAppointmentButtonText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '700',
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
   },
   sectionContainer: {
     marginBottom: 24,
