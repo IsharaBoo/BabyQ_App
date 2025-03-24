@@ -14,6 +14,7 @@ const getBackendUrl = () => {
     return 'http://10.0.2.2:8082'; // Emulator
   } else {
     return 'http://192.168.8.119:8082'; // iOS and physical devices
+    //else return 'http://10.31.23.48:8082';
   }
 };
 
