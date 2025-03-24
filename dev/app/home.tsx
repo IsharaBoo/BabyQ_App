@@ -431,7 +431,7 @@ export default function HomePage() {
                 if (user.role === 'Parent/Guardian') {
                   router.push('/profile');
                 } else if (user.role === 'Doctor') {
-                  router.push('/Dprofile');
+                  router.push('/sehansa');
                 } else {
                   Alert.alert('Error', 'Unable to determine profile type.');
                 }

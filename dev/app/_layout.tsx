@@ -53,7 +53,7 @@ export default function RootLayout() {
       <Stack.Screen name="ResetPW2" options={{ headerShown: false }} />
       <Stack.Screen name="resetDone" options={{ headerShown: false }} />
       <Stack.Screen name="doctorCategory" options={{ headerShown: false }} />
-      
+      <Stack.Screen name="booking" options={{ headerShown: false }} />
       <Stack.Screen name="doctorSearchResults" options={{ headerShown: false }} />
       <Stack.Screen name="ChannelHistory" options={{ headerShown: false }} />
       <Stack.Screen name="Channel" options={{ headerShown: false }} />

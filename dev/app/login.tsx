@@ -128,7 +128,7 @@ const LoginPage: React.FC = () => {
 
       await AsyncStorage.setItem('userData', JSON.stringify(doctorUserData));
       console.log('Doctor user data saved to AsyncStorage:', doctorUserData);
-      router.push('/Dprofile'); // Navigate directly
+      router.push('/sehansa'); // Navigate directly
 
     } catch (doctorError: any) {
       console.error('Doctor login failed:', {
