@@ -414,7 +414,7 @@ const DProfile = () => {
           </TouchableOpacity>
           <TouchableOpacity style={styles.navItem} onPress={() => router.push('/MedicalHistory')}>
             <Icon name="file-text" size={22} color="#888" />
-            <Text style={styles.navText}>History</Text>
+            <Text style={styles.navText}>Medical History</Text>
           </TouchableOpacity>
         </View>
       </BlurView>
