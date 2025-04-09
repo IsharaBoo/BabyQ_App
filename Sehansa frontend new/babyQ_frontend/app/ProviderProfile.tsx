@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
   rating: { flexDirection: "row", alignItems: "center" },
   navLinks: { marginBottom: 20 },
   link: {
-    backgroundColor: "#007AFF",
+    backgroundColor: "white",
     padding: 10,
     borderRadius: 5,
     marginBottom: 10,
