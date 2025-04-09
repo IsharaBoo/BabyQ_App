@@ -65,6 +65,7 @@ export default function RootLayout() {
       <Stack.Screen name="profile" options={{ headerShown: false }} />
       <Stack.Screen name="EditProfileScreen" options={{ headerShown: false }} />
       <Stack.Screen name="MyAppointmentsScreen" options={{ headerShown: false }} />
+      <Stack.Screen name="Dprofile" options={{ headerShown: false }} />
       
     </Stack>
   );

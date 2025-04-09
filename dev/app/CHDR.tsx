@@ -195,16 +195,16 @@ export default function HomeScreen() {
       <BlurView intensity={20} style={styles.navbarContainer}>
         <View style={styles.navbar}>
           <TouchableOpacity style={styles.navItem} onPress={() => router.push('./home')}>
-            <FontAwesome name="home" size={22} color="#2D4BC2" />
-            <Text style={[styles.navText, styles.activeNavText]}>Home</Text>
+            <FontAwesome name="home" size={22} color="#888" />
+            <Text style={[styles.navText, styles.navText]}>Home</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.navItem} onPress={() => router.push('./community')}>
             <FontAwesome name="users" size={22} color="#888" />
             <Text style={styles.navText}>Community</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.navItem} onPress={() => router.push('./CHDR')}>
-            <FontAwesome name="line-chart" size={22} color="#888" />
-            <Text style={styles.navText}>Insights</Text>
+            <FontAwesome name="line-chart" size={22} color="#2D4BC2" />
+            <Text style={styles.activeNavText}>Insights</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.navItem} onPress={() => router.push('./Channel')}>
             <FontAwesome name="file-text" size={22} color="#888" />

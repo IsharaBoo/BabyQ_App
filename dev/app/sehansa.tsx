@@ -191,8 +191,8 @@ const ProviderProfile: React.FC = () => {
         </View>
 
         <View style={styles.navLinks}>
-          <Link href="./profile-setup" style={styles.link}><Text style={styles.linkText}>Go to Profile Setup</Text></Link>
-          <Link href="./provider-schedule" style={styles.link}><Text style={styles.linkText}>Go to Schedule</Text></Link>
+          <Link href="./Dprofile" style={styles.link}><Text style={styles.linkText}>Go to Profile Setup</Text></Link>
+          <Link href="./booking" style={styles.link}><Text style={styles.linkText}>Go to Schedule</Text></Link>
         </View>
 
         <View style={styles.buttonContainer}><Text style={styles.buttonText}>Book Appointment</Text></View>
