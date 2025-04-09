@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
   container: {
     paddingVertical: 40,
     paddingHorizontal: 20,
-    backgroundColor: "white",
+    backgroundColor: "blue",
     flexGrow: 1,
     alignItems: "center",
   },
