@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Platform, GestureResponderEvent } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
@@ -84,6 +84,10 @@ export default function HealthcareProviderRegistration1() {
     router.back();
   };
 
+  const handleLoginRedirect = () => {
+    router.push('/login');
+  };
+
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
@@ -157,6 +161,10 @@ export default function HealthcareProviderRegistration1() {
         <Text style={styles.buttonText}>{isChecking ? 'Checking...' : 'Continue'}</Text>
       </TouchableOpacity>
 
+      <TouchableOpacity onPress={handleLoginRedirect}>
+              <Text style={styles.loginText}>Already have an account? Login</Text>
+            </TouchableOpacity>
+            
       <View style={styles.decorativeDots}>
         {Array.from({ length: 5 }).map((_, index) => (
           <View key={index} style={styles.dot} />
@@ -227,6 +235,11 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
     letterSpacing: 1,
+  },
+  loginText: {
+    color: '#2D4BC2',
+    textDecorationLine: 'underline',
+    marginTop: 20,
   },
   decorativeDots: {
     position: 'absolute',
