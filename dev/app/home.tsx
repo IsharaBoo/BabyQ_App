@@ -29,7 +29,8 @@ const getBackendUrl = () => {
   } else if (Platform.OS === 'android') {
     return 'http://10.0.2.2:8082'; // Emulator
   } else {
-    return 'http://192.168.1.100:8082'; // iOS and physical devices - replace with your IP
+    return 'http://10.31.23.48:8082';
+    //return 'http://192.168.1.100:8082'; // iOS and physical devices - replace with your IP
   }
 };
 
@@ -63,8 +64,8 @@ export default function HomePage() {
     const hours = new Date().getHours();
     if (hours < 12) setGreeting('Good Morning');
     else if (hours < 18) setGreeting('Good Afternoon');
-    else setGreeting('Good Evening');
 
+    else setGreeting('Good Evening');
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,

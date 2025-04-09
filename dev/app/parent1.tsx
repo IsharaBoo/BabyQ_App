@@ -21,38 +21,57 @@ const ParentRegistration1: React.FC = () => {
 
   const handleContinue = () => {
     setIsLoading(true);
+
+    // Required field validation
     if (!fullName || !nicNumber || !dob.day || !dob.month || !dob.year || !address || !phoneNumber || !email) {
       Alert.alert('Error', 'Please fill in all fields');
       setIsLoading(false);
       return;
     }
 
+    // Phone number validation
     if (!/^\d{10}$/.test(phoneNumber)) {
       Alert.alert('Error', 'Please enter a valid 10-digit phone number');
       setIsLoading(false);
       return;
     }
 
+    // Email validation
     if (!/\S+@\S+\.\S+/.test(email)) {
       Alert.alert('Error', 'Please enter a valid email address');
       setIsLoading(false);
       return;
     }
 
+    // DOB validation
     const dobString = `${dob.year}-${dob.month.padStart(2, '0')}-${dob.day.padStart(2, '0')}`;
     const dobDate = new Date(dobString);
-    if (isNaN(dobDate.getTime()) || dobDate > new Date()) {
-      Alert.alert('Error', 'Please enter a valid date of birth');
+    const monthNum = parseInt(dob.month);
+    const dayNum = parseInt(dob.day);
+    const yearNum = parseInt(dob.year);
+    const maxDays = new Date(yearNum, monthNum, 0).getDate();
+
+    if (
+      isNaN(dobDate.getTime()) || // Invalid date
+      monthNum < 1 || monthNum > 12 || // Invalid month
+      dayNum < 1 || dayNum > maxDays || // Invalid day
+      yearNum < 1900 || yearNum > new Date().getFullYear() || // Reasonable year range
+      dobDate > new Date() // Future date
+    ) {
+      Alert.alert('Error', 'Please enter a valid date of birth (e.g., 1980-04-14)');
       setIsLoading(false);
       return;
     }
+
+    
+    console.log('Navigating with params:', { fullName, nicNumber, dateOfBirth: dobString, address, phoneNumber, email });
 
     router.push({
       pathname: '/parent2',
       params: {
         fullName,
         nicNumber,
-        dateOfBirth: dobString, // Pass as ISO string for backend
+        dateOfBirth: dobString, // Valid YYYY-MM-DD
         address,
         phoneNumber,
         email,

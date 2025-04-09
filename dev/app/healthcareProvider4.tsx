@@ -27,7 +27,7 @@ export default function HealthcareProviderRegistration4() {
       console.log('Registration complete, user data:', JSON.parse(userData));
   
       Alert.alert('Success', 'Healthcare provider registration completed! Please log in.');
-      router.push('/sehansa'); // Navigate to doc profile
+      router.push('/home'); // Navigate to home
     } catch (error) {
       console.error('Error completing profile:', error);
       Alert.alert('Error', 'Failed to complete profile');
