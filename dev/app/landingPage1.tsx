@@ -6,7 +6,7 @@ export default function LandingPage1() {
   const router = useRouter();
 
   const handleNavigation = () => {
-    router.push('/home'); // Navigate to LandingPage2
+    router.push('/landingPage2'); // Navigate to LandingPage2
   };
 
   return (

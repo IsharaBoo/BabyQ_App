@@ -11,6 +11,7 @@ import {
   Linking,
   Animated,
   Dimensions,
+  Platform,
   Alert,
 } from 'react-native';
 import { FontAwesome, FontAwesome5 } from '@expo/vector-icons';
@@ -18,8 +19,22 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { BlurView } from 'expo-blur';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
 
 const { width } = Dimensions.get('window');
+
+const getBackendUrl = () => {
+  if (Platform.OS === 'web') {
+    return 'http://localhost:8082';
+  } else if (Platform.OS === 'android') {
+    return 'http://10.0.2.2:8082'; // Emulator
+  } else {
+    return 'http://10.31.23.48:8082';
+    //return 'http://192.168.1.100:8082'; // iOS and physical devices - replace with your IP
+  }
+};
+
+const backendUrl = getBackendUrl();
 
 export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -31,6 +46,7 @@ export default function HomePage() {
 
   const fadeAnim = useState(new Animated.Value(0))[0];
   const slideAnim = useState(new Animated.Value(50))[0];
+  const bounceAnim = useState(new Animated.Value(1))[0]; // For button animation
 
   useEffect(() => {
     const checkLoginState = async () => {
@@ -39,15 +55,7 @@ export default function HomePage() {
         const userData = JSON.parse(savedUserData);
         setUser(userData);
       } else {
-        // Mock user data if no login page exists
-        const mockUser = {
-          name: 'Test User',
-          email: 'test@example.com',
-          role: 'User',
-          registrationDate: '2025-03-18',
-        };
-        await AsyncStorage.setItem('userData', JSON.stringify(mockUser));
-        setUser(mockUser);
+        router.push('/login');
       }
     };
 
@@ -55,9 +63,9 @@ export default function HomePage() {
 
     const hours = new Date().getHours();
     if (hours < 12) setGreeting('Good Morning');
-    else if (hours < 18) setGreeting('Hii!! Good Afternoon');
-    else setGreeting('Hii!! Good Evening');
+    else if (hours < 18) setGreeting('Good Afternoon');
 
+    else setGreeting('Good Evening');
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
@@ -70,44 +78,56 @@ export default function HomePage() {
         useNativeDriver: true,
       }),
     ]).start();
+
+    // Button bounce animation loop
+    const bounce = () => {
+      Animated.sequence([
+        Animated.timing(bounceAnim, {
+          toValue: 1.1,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(bounceAnim, {
+          toValue: 1,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+      ]).start(() => bounce());
+    };
+    bounce();
   }, []);
 
-  const handleSearch = () => {
+  const handleSearch = async () => {
     if (!searchQuery.trim()) {
       Alert.alert('Error', 'Please enter a search term');
       return;
     }
 
-    // Mock doctor data
-    const mockDoctors = [
-      { id: 1, firstName: 'John', lastName: 'Doe', position: 'Pediatrician', affiliatedHospital: 'City Hospital', phoneNumber: '123-456-7890' },
-      { id: 2, firstName: 'Jane', lastName: 'Smith', position: 'Cardiologist', affiliatedHospital: 'General Hospital', phoneNumber: '098-765-4321' },
-      { id: 3, firstName: 'Emily', lastName: 'Brown', position: 'Neurologist', affiliatedHospital: 'Neuro Center', phoneNumber: '555-123-4567' },
-      { id: 4, firstName: 'Michael', lastName: 'Lee', position: 'Orthopedics', affiliatedHospital: 'Bone Clinic', phoneNumber: '444-987-6543' },
-    ];
-
-    // Filter mock data based on search query
-    const filteredResults = mockDoctors.filter(doc =>
-      doc.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      doc.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      doc.position.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      doc.affiliatedHospital.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-
-    setSearchResults(filteredResults);
-    if (filteredResults.length === 0) {
-      Alert.alert('No Results', `No doctors found for "${searchQuery}".`);
+    try {
+      console.log('Searching for:', searchQuery, 'at:', `${backendUrl}/api/doctors/search`);
+      const response = await axios.get(`${backendUrl}/api/doctors/search`, {
+        params: { query: searchQuery },
+        timeout: 5000,
+      });
+      console.log('Search results:', response.data);
+      setSearchResults(response.data);
+    } catch (error: any) {
+      console.error('Search failed:', {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data,
+      });
+      Alert.alert('Search Failed', 'Unable to fetch results. Please try again.');
+      setSearchResults([]);
     }
   };
 
   const handleCategoryPress = (category: string) => {
-    // Simulate navigation or show alert if page is missing
-    Alert.alert('Info', `Would navigate to ${category} category page`);
-    // router.push(`/doctorCategory?category=${encodeURIComponent(category)}`);
+    router.push(`/doctorCategory?category=${encodeURIComponent(category)}`);
   };
 
   const handlePress = (url: string) => {
-    Linking.openURL(url);
+    Linking.openURL(url).catch((err) => console.error('Failed to open URL:', err));
   };
 
   const handleLogout = async () => {
@@ -115,11 +135,14 @@ export default function HomePage() {
       await AsyncStorage.removeItem('userData');
       await AsyncStorage.removeItem('email');
       await AsyncStorage.removeItem('password');
-      Alert.alert('Logged Out', 'You have been logged out.');
-      setUser(null); // Reset user state instead of redirecting
+      router.replace('/login');
     } catch (error) {
       console.error('Failed to logout:', error);
     }
+  };
+
+  const handleBookAppointment = () => {
+    router.push('/booking' as any); // Adjust route if different
   };
 
   const renderDoctorResult = ({ item }: { item: any }) => (
@@ -141,11 +164,36 @@ export default function HomePage() {
   ];
 
   const ads = [
-    { id: '1', image: require('../assets/images/ad1.png'), title: 'Health Insurance Plans' },
-    { id: '2', image: require('../assets/images/ad2.png'), title: 'Annual Checkup Discount' },
-    { id: '3', image: require('../assets/images/ad3.png'), title: 'Mental Health Services' },
-    { id: '4', image: require('../assets/images/ad4.png'), title: 'New Clinic Opening' },
-    { id: '5', image: require('../assets/images/ad6.jpg'), title: 'Family Healthcare Packages' },
+    {
+      id: '5',
+      image: require('../assets/images/ad5.png'),
+      title: 'Child Healthcare Packages',
+      url: 'https://softlogiclife.lk/products/good-health-series-child-plan/',
+    },
+    {
+      id: '2',
+      image: require('../assets/images/ad2.png'),
+      title: 'Annual Checkup Discount',
+      url: 'https://kidshealth.org/en/parents/checkup-hospital.html',
+    },
+    {
+      id: '1',
+      image: require('../assets/images/add1.png'),
+      title: 'Health Insurance Plans',
+      url: 'https://www.healthcare.gov/coverage/what-marketplace-plans-cover/',
+    },
+    {
+      id: '3',
+      image: require('../assets/images/ad3.png'),
+      title: 'Mental Health Services',
+      url: 'https://www.nimh.nih.gov/health/topics/child-and-adolescent-mental-health',
+    },
+    {
+      id: '4',
+      image: require('../assets/images/ad1.png'),
+      title: 'Offers',
+      url: 'https://example.com/babyq-offers',
+    },
   ];
 
   const news = [
@@ -210,12 +258,36 @@ export default function HomePage() {
           </View>
           <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
             <LinearGradient
-              colors={['#2D4BC2', '#475FD3']}
+              colors={['#2D4BC2', '#2D4BC2']}
               style={styles.searchButtonGradient}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
             >
               <Text style={styles.searchButtonText}>Search</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </Animated.View>
+
+        <Animated.View
+          style={[
+            styles.bookAppointmentContainer,
+            { transform: [{ scale: bounceAnim }] },
+          ]}
+        >
+          <TouchableOpacity
+            style={styles.bookAppointmentButton}
+            onPress={handleBookAppointment}
+          >
+            <LinearGradient
+              colors={['#2D4BC2', '#8A2BE2', '#FF69B4']} // Blue to Purple to Pink
+              style={styles.bookAppointmentButtonGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
+              <View style={styles.bookAppointmentContent}>
+                <FontAwesome5 name="calendar-alt" size={20} color="#FFFFFF" style={styles.bookIcon} />
+                <Text style={styles.bookAppointmentButtonText}>Book An Appointment!</Text>
+              </View>
             </LinearGradient>
           </TouchableOpacity>
         </Animated.View>
@@ -244,7 +316,10 @@ export default function HomePage() {
             showsHorizontalScrollIndicator={false}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
-              <TouchableOpacity style={styles.adCard}>
+              <TouchableOpacity
+                style={styles.adCard}
+                onPress={() => handlePress(item.url)}
+              >
                 <Image source={item.image} style={styles.adImage} />
                 <View style={styles.adOverlay}>
                   <Text style={styles.adTitle}>{item.title}</Text>
@@ -318,28 +393,52 @@ export default function HomePage() {
 
             <View style={styles.profileContent}>
               <View style={styles.profileItem}>
-                <Text style={styles.profileLabel}>Name</Text>
+                <Text style={styles.profileLabel}>Name:</Text>
                 <Text style={styles.profileValue}>{user.name}</Text>
               </View>
               <View style={styles.profileItem}>
-                <Text style={styles.profileLabel}>Email</Text>
+                <Text style={styles.profileLabel}>Email:</Text>
                 <Text style={styles.profileValue}>{user.email}</Text>
               </View>
               <View style={styles.profileItem}>
-                <Text style={styles.profileLabel}>Role</Text>
+                <Text style={styles.profileLabel}>Role:</Text>
                 <Text style={styles.profileValue}>{user.role}</Text>
               </View>
               <View style={styles.profileItem}>
-                <Text style={styles.profileLabel}>Registered On</Text>
+                <Text style={styles.profileLabel}>Children:</Text>
+                <Text style={styles.profileValue}>{user.childName || 'N/A'}</Text>
+              </View>
+              <View style={styles.profileItem}>
+                <Text style={styles.profileLabel}>Registered On:</Text>
                 <Text style={styles.profileValue}>{user.registrationDate}</Text>
               </View>
+              {user.nicNumber && (
+                <View style={styles.profileItem}>
+                  <Text style={styles.profileLabel}>NIC Number:</Text>
+                  <Text style={styles.profileValue}>{user.nicNumber}</Text>
+                </View>
+              )}
+              {user.phoneNumber && (
+                <View style={styles.profileItem}>
+                  <Text style={styles.profileLabel}>Phone Number</Text>
+                  <Text style={styles.profileValue}>{user.phoneNumber}</Text>
+                </View>
+              )}
             </View>
 
             <TouchableOpacity
               style={styles.profileButton}
-              // onPress={() => router.push('/profile' as any)}
+              onPress={() => {
+                if (user.role === 'Parent/Guardian') {
+                  router.push('/profile');
+                } else if (user.role === 'Doctor') {
+                  router.push('/sehansa');
+                } else {
+                  Alert.alert('Error', 'Unable to determine profile type.');
+                }
+              }}
             >
-              <Text style={styles.profileButtonText}>Edit Your Profile (Disabled)</Text>
+              <Text style={styles.profileButtonText}>Go to Profile</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
               <Text style={styles.logoutButtonText}>Logout</Text>
@@ -356,7 +455,7 @@ export default function HomePage() {
             <FontAwesome name="home" size={22} color="#2D4BC2" />
             <Text style={[styles.navText, styles.activeNavText]}>Home</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.navItem} onPress={() => router.push('./communityPage')}>
+          <TouchableOpacity style={styles.navItem} onPress={() => router.push('./community')}>
             <FontAwesome name="users" size={22} color="#888" />
             <Text style={styles.navText}>Community</Text>
           </TouchableOpacity>
@@ -458,6 +557,41 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
   },
+  bookAppointmentContainer: {
+    marginBottom: 24,
+    alignItems: 'center',
+  },
+  bookAppointmentButton: {
+    borderRadius: 20,
+    overflow: 'hidden',
+    shadowColor: '#8A2BE2',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.5,
+    shadowRadius: 10,
+    elevation: 5,
+  },
+  bookAppointmentButtonGradient: {
+    paddingVertical: 14,
+    paddingHorizontal: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+  },
+  bookAppointmentContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  bookIcon: {
+    marginRight: 10,
+  },
+  bookAppointmentButtonText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '700',
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
+  },
   sectionContainer: {
     marginBottom: 24,
   },
@@ -522,7 +656,7 @@ const styles = StyleSheet.create({
   },
   adImage: {
     width: '100%',
-    height: '100%',
+    height: '150%',
   },
   adOverlay: {
     position: 'absolute',

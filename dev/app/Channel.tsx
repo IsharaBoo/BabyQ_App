@@ -208,7 +208,7 @@ const MedicalHistoryPage = () => {
           Growth Data
         </Button>
         <Button mode="contained" onPress={goToChatbot} style={styles.button}>
-          Chatbot
+          Allergy Prediction
         </Button>
       </ScrollView>
 
@@ -216,8 +216,8 @@ const MedicalHistoryPage = () => {
       <BlurView intensity={20} style={styles.navbarContainer}>
         <View style={styles.navbar}>
           <TouchableOpacity style={styles.navItem} onPress={() => router.replace('/home')}>
-            <FontAwesome name="home" size={22} color="#2D4BC2" />
-            <Text style={[styles.navText, styles.activeNavText]}>Home</Text>
+            <FontAwesome name="home" size={22} color="#888" />
+            <Text style={[styles.navText, styles.navText]}>Home</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.navItem} onPress={() => Alert.alert('Info', 'Community page not available')}>
             <FontAwesome name="users" size={22} color="#888" />
@@ -228,8 +228,8 @@ const MedicalHistoryPage = () => {
             <Text style={styles.navText}>Insights</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.navItem} onPress={() => router.push('/Channel')}>
-            <FontAwesome name="file-text" size={22} color="#888" />
-            <Text style={styles.navText}>Medical History</Text>
+            <FontAwesome name="file-text" size={22} color="#2D4BC2" />
+            <Text style={styles.activeNavText}>Medical History</Text>
           </TouchableOpacity>
         </View>
       </BlurView>
